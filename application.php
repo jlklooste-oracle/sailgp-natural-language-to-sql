@@ -4,9 +4,8 @@ require_once "config.php";
 // Constants
 const COHERE_API_ENDPOINT = "https://api.cohere.com/generate";
 const COHERE_API_KEY = "9n2XyF7AoqIyBde0JTi2xXW4hgW2Z2js1cZ35PFj"; // Replace with your Cohere API key
-//const PROMPT_PREFIX = "Translate the user query into an SQL statement. You only have access to one table named SAILGP_SGP_STRM_PIVOT. Column names are B_NAME (team/country name), BOAT_SPEED_KNOTS (speed) and TIME_GRP (number of seconds into the race). Your returned string must start with SELECT. DON'T ADD ANYTHING in the response that's not SQL. E.g. don't explain the SQL or give other comments. Here's the user query to translate to SQL: ";
-const PROMPT_PREFIX = "
-  Translate the user query into an SQL statement. 
+const NL2SQL_PROMPT = "
+  System: You are an assistant that helps translate natural language queries from the user to SQL. You also give interpret the returned data and explain it in natural language to the end user.
   You have access to the following table in the database:
   { table name: 'SAILGP_SGP_STRM_PIVOT',
     table description: 'Each record holds the sensor values of one team/country for one particular moment (second) in the race'
@@ -23,17 +22,22 @@ const PROMPT_PREFIX = "
       { column name: 'MANEUVER', description: 'whether boat is currently in a maneuver, values Y or N' },
       { column name: 'BDE_LEG_NUM_UNK', description: 'the number of the leg/track the boat is currently in. Value 7 means the race has ended (crossed the finish line).' }
   ] }
-  Your returned string must start with SELECT. 
   DON'T ADD ANYTHING in the response that's not SQL. E.g. don't explain the SQL or give other comments. 
-
-  Example
-  Input: What was the highest speed achieved?
-  Output: SELECT MAX(BOAT_SPEED_KNOTS) FROM SAILGP_SGP_STRM_PIVOT
-
-  Now it's your turn: 
-  Input: ";
+  User: When did each team first reach leg 7?
+  Assistant: SELECT B_NAME, TIME_GRP FROM SAILGP_SGP_STRM_PIVOT WHERE BDE_LEG_NUM_UNK = 7 ORDER BY TIME_GRP ASC
+  Database: The result is [{\"B_NAME\":\"GBR\",\"TIME_GRP\":703},{\"B_NAME\":\"AUS\",\"TIME_GRP\":739},{\"B_NAME\":\"ESP\",\"TIME_GRP\":764},{\"B_NAME\":\"NZL\",\"TIME_GRP\":766},{\"B_NAME\":\"FRA\",\"TIME_GRP\":768},{\"B_NAME\":\"DEN\",\"TIME_GRP\":789}]
+  Assistant: Explanation - Great Britain, Australia, Spain, New Zealand, France and Denmark reached leg 7 in respectively 703, 739, 764, 766, 768 and 789 seconds.
+  User: Which team achieved the highest speed?
+  Assistant: SELECT B_NAME, MAX(BOAT_SPEED_KNOTS) FROM SAILGP_SGP_STRM_PIVOT GROUP BY B_NAME ORDER BY MAX(BOAT_SPEED_KNOTS) DESC LIMIT 1
+  Database: The result is [{\"B_NAME\":\"GBR\",\"MAX(BOAT_SPEED_KNOTS)\":50.9363}]
+  Assistant: Explanation - Team Great Britain achieved the highest boat speed of 50.9363 knots.
+  User: ";
 
 /* Some questions:
+WORKS: WHAT WAS THE AVERAGE SPEEDS OF ALL TEAMS? INCLUDE REAL COUNTRY NAMES.
+WORKS: WHICH TEAM HAD THE HIGHEST AVERAGE SPEED?
+WORKS: WHAT WAS THE TIME (MINIMUM TIME) THAT EACH TEAM REACHED LEG 6? INCLUDE THE TEAM NAMES.
+
 WORKS: How much time did each team foil?
 SELECT SUM(TIME_FOILING) , B_NAME FROM SAILGP_SGP_STRM_PIVOT GROUP BY B_NAME
 WORKS: Which team achieved the highest speed?
@@ -64,9 +68,10 @@ function callCohereAPI($prompt)
 
   $data = [
     'model' => 'command',
-    'prompt' => PROMPT_PREFIX . $prompt,
+    'prompt' => $prompt,
     'temperature' => 0.0,
-    'max_tokens' => 250
+    'max_tokens' => 250,
+    'stop_sequences' => ["Database:"],
   ];
 
   curl_setopt($ch, CURLOPT_URL, COHERE_API_ENDPOINT);
@@ -94,28 +99,59 @@ function callCohereAPI($prompt)
   }
 
   $resultArray = json_decode($response, true);
-  //
-  //foreach ($resultArray as $key => $value) {
-  //  error_log("row");
-  //  error_log("Key: $key, Value: $value");
-  //}
+
+  // Check if the text ends with "Database:" and remove it if it does
+  if (substr($resultArray['text'], -9) === "Database:") {
+    error_log('Removed stop sequence Database: from language model response');
+    $resultArray['text'] = substr($resultArray['text'], 0, -9);
+  }
   return $resultArray['text'];
 }
 
-// Function to execute SQL on database and return the result as a HTML table
-function executeSQLAndGetFormattedData($link, $sqlStatement)
+function formatJSONasHTML($jsonData)
 {
-  $result = '';
+  $data = json_decode($jsonData, true);
+  if (json_last_error() !== JSON_ERROR_NONE) {
+    throw new Exception("Invalid JSON data provided.");
+  }
+
+  $result = "<table>";
+
+  // Display headers
+  if (!empty($data)) {
+    $result .= "<tr class=\"theaderrow\">";
+    foreach ($data[0] as $name => $value) {
+      $result .= "<th class=\"theader\"><div class=\"theaderdiv\">" . htmlspecialchars($name) . "</div></th>";
+    }
+    $result .= "</tr>";
+
+    // Display data
+    foreach ($data as $row) {
+      $result .= "<tr>";
+      foreach ($row as $value) {
+        $result .= "<td class=\"tcell\">" . htmlspecialchars($value) . "</td>";
+      }
+      $result .= "</tr>";
+    }
+  }
+
+  $result .= "</table>";
+  return $result;
+}
+
+function executeSQLAndGetJSON($link, $sqlStatement)
+{
+  $data = [];
 
   if ($stmt = $link->prepare($sqlStatement)) {
     $stmt->execute();
 
-    // Check if there is an error in the SQL statement
+    // Check for SQL errors
     if ($stmt->errno) {
       throw new Exception("An error occurred while executing the SQL statement: " . $stmt->error);
     }
 
-    // Get the result metadata
+    // Get result metadata
     $meta = $stmt->result_metadata();
     if (!$meta) {
       throw new Exception("No result set returned by the SQL statement.");
@@ -124,49 +160,48 @@ function executeSQLAndGetFormattedData($link, $sqlStatement)
     // Dynamically bind the results
     while ($field = $meta->fetch_field()) {
       $var = $field->name;
-      $$var = null; // Create a variable with the column's name
-      $fields[$var] = &$$var; // Create a reference to the variable
+      $$var = null;
+      $fields[$var] = &$$var;
     }
 
-    // Bind the results
     call_user_func_array([$stmt, 'bind_result'], $fields);
 
-    $result .= "<table>";
-    $result .= "<tr class=\"theaderrow\">";
-
-    // Display the headers
-    foreach ($fields as $name => $value) {
-      $result .= "<th class=\"theader\"><div class=\"theaderdiv\">" . $name . "</div></th>";
-    }
-
-    $result .= "</tr>";
-
-    // Fetch the results
+    // Fetch the results and store them in the data array
     while ($stmt->fetch()) {
-      $result .= "<tr>";
+      $row = [];
       foreach ($fields as $name => $value) {
-        $result .= "<td class=\"tcell\">" . $value . "</td>";
+        $row[$name] = $value;
       }
-      $result .= "</tr>";
+      $data[] = $row;
     }
-
-    $result .= "</table>";
 
     $stmt->close();
   } else {
     throw new Exception("Could not run SQL: " . $sqlStatement . " Error: " . $link->error);
   }
-  return $result;
+
+  return json_encode($data);
 }
 
 $error = null;
 $sql = null;
 $formattedData = '';
+$jsonData = ''; // This will store the JSON data we get from the SQL query.
+$naturalLanguageAnswer = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['prompt'])) {
   // This code is executed when the user has submitted a text
   try {
-    $sql = callCohereAPI($_POST['prompt']);
-    $formattedData = executeSQLAndGetFormattedData($link, $sql);
+    $prompt = NL2SQL_PROMPT . $_POST['prompt'] . "\nAssistant: SELECT ";
+    error_log('$prompt' . $prompt);
+    $sql = "SELECT " . callCohereAPI($prompt);
+    error_log('$sql' . $sql);
+    $jsonData = executeSQLAndGetJSON($link, $sql);
+    error_log('$jsonData' . $jsonData);
+    $formattedData = formatJSONasHTML($jsonData);
+    $followUpPrompt = $prompt . "\nDatabase: The result is" . $jsonData . "\nAssistant: Explanation - ";
+    error_log('$followUpPrompt' . $followUpPrompt);
+    $naturalLanguageAnswer = callCohereAPI($followUpPrompt);
+    error_log('$naturalLanguageAnswer' . $naturalLanguageAnswer);
   } catch (Exception $e) {
     $error = $e->getMessage();
   }
@@ -240,18 +275,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['prompt'])) {
       echo "</div>";
     }
     if (!isset($error)) {
+      if (isset($naturalLanguageAnswer)) {
+        echo "<div>";
+        echo "<p><b>" . $naturalLanguageAnswer . "</b></p>";
+        echo "</div>";
+      }
+    }
+    if (!isset($error)) {
       if (isset($formattedData)) {
         echo "<div>";
+        echo "<p>FYI, I executed the following SQL: " . htmlspecialchars($sql) . "</p>";
+        echo "<p>This is what the database returned:</p>";
         echo "<p>" . $formattedData . "</p>";
         echo "</div>";
       }
     }
-    if (isset($sql)) {
-      echo "<div class=\"footnote\">";
-      echo "SQL used: " . htmlspecialchars($sql);
-      echo "</div>";
-    }
     ?>
+    
 
   </div>
   <div class="footer">
