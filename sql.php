@@ -1,6 +1,6 @@
 <?php
-require_once "config.php";
 
+/*
 // Database credentials
 define('DB_SERVER', '10.0.1.73');// MDS server IP address
 define('DB_USERNAME', 'admin');
@@ -54,13 +54,27 @@ function executeSQLAndGetJSON($link, $sqlStatement)
     }
 
     return json_encode($data);
+}*/
+
+function executeSQLAndGetJSON($link, $sqlStatement)
+{
+    $data = [
+        ['ID' => 1, 'Name' => 'John Doe', 'Age' => 30, 'City' => 'New York', 'Occupation' => 'Software Engineer'],
+        ['ID' => 2, 'Name' => 'Jane Smith', 'Age' => 25, 'City' => 'Los Angeles', 'Occupation' => 'Graphic Designer'],
+        ['ID' => 3, 'Name' => 'Emily Johnson', 'Age' => 28, 'City' => 'Chicago', 'Occupation' => 'Data Analyst'],
+        ['ID' => 4, 'Name' => 'Michael Brown', 'Age' => 35, 'City' => 'Houston', 'Occupation' => 'Project Manager'],
+        ['ID' => 5, 'Name' => 'Sarah Davis', 'Age' => 32, 'City' => 'Phoenix', 'Occupation' => 'Web Developer']
+    ];
+
+    return json_encode($data);
 }
+
+$link = "dummy";
 
 // Read the JSON payload from the request (the input from the user)
 $payload = json_decode(file_get_contents('php://input'), true);
 $sql = $payload['sql'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
 $response = executeSQLAndGetJSON($link, $sql);
-error_log("response" . $response);
 $responseJSON = json_encode(['output' => $response]);
 header('Content-Type: application/json');
 error_log("responseJSON" . $responseJSON);

@@ -2,7 +2,7 @@
 
 // Constants
 const OPENAI_API_ENDPOINT = "https://api.openai.com/v1/completions";
-const OPENAI_API_KEY = "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"; // Replace with your OpenAI API key
+const OPENAI_API_KEY = "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"; //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"; // Replace with your OpenAI API key
 const NL2SQL_PROMPT = "You are an assistant that helps translate natural language queries from the user to SQL.
   You interact with a database that returns you the result of the SQL.
   Next, you interpret the result from the database and explain it in natural language to the end user.
@@ -33,14 +33,14 @@ const NL2SQL_PROMPT = "You are an assistant that helps translate natural languag
   User: ";
 
   // Function to call the OpenAI API
-  function nl2sql($prompt)
+  function nl2sql($finalPrompt)
   {
       $ch = curl_init();
     
-      error_log("$prompt" . $prompt);
+      error_log("$finalPrompt" . $finalPrompt);
       $data = [
         'model' => 'gpt-3.5-turbo-instruct',
-        'prompt' => $prompt . "\r\nAssistant: SELECT ",
+        'prompt' => $finalPrompt,
         'temperature' => 0.0,
         'max_tokens' => 1000,
         'top_p' => 1,
@@ -79,14 +79,14 @@ const NL2SQL_PROMPT = "You are an assistant that helps translate natural languag
   
   // Read the JSON payload from the request (the input from the user)
   $payload = json_decode(file_get_contents('php://input'), true);
-  $message = $payload['message'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
-  $prompt = NL2SQL_PROMPT . $message;
-  error_log("message" . $message);
-  $response = nl2sql($prompt);
+  $prompt = $payload['prompt'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
+  $finalPrompt = NL2SQL_PROMPT . $prompt . "\r\nAssistant: SELECT";
+  error_log("finalPrompt" . $finalPrompt);
+  $response = nl2sql($finalPrompt);
   error_log("response" . $response);
   $responseJSON = json_encode(['output' => $response]);
   header('Content-Type: application/json');
   error_log("responseJSON" . $responseJSON);
   echo $responseJSON;
+  //echo "<output>test</output>";
   exit;
-  

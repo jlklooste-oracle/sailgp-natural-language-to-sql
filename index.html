@@ -1,139 +1,239 @@
-<!--
-    we might need to add this to the instructions
-
-    Enable cURL in PHP.ini:
-
-Locate your php.ini file (this can typically be found in your PHP installation directory).
-Search for the line ;extension=curl, which might be commented out (comments are indicated by a leading semicolon).
-Remove the semicolon to uncomment this line. It should look like extension=curl.
-Save the changes.
--->
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NL2SQL Demo</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+    />
     <script type="module">
-        window.addEventListener('load', (event) => {
+      function formatJSONasHTML(jsonData) {
+        try {
+          const data = JSON.parse(jsonData);
 
-            document.querySelector(".sendMessage").addEventListener('click', (event) => {
+          if (!Array.isArray(data) || data.length === 0) {
+            throw new Error("Provided JSON is not an array or is empty.");
+          }
 
-                event.currentTarget.classList.add('is-loading');
-                event.currentTarget.disabled = true;
+          let result = "<table>";
 
-                document.querySelector(".result").parentElement.classList.add("is-hidden");
-                document.querySelector(".error").parentElement.classList.add("is-hidden");
+          // Display headers
+          result += '<tr class="theaderrow">';
+          Object.keys(data[0]).forEach((name) => {
+            result += `<th class="theader"><div class="theaderdiv">${escapeHTML(
+              name
+            )}</div></th>`;
+          });
+          result += "</tr>";
 
+          // Display data
+          data.forEach((row) => {
+            result += "<tr>";
+            Object.values(row).forEach((value) => {
+              result += `<td class="tcell">${escapeHTML(value)}</td>`;
+            });
+            result += "</tr>";
+          });
+
+          result += "</table>";
+          return result;
+        } catch (e) {
+          console.error("Invalid JSON data provided.", e);
+          return "Invalid JSON data provided.";
+        }
+      }
+
+      function escapeHTML(str) {
+        return str
+          .toString()
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      window.addEventListener("load", (event) => {
+        document
+          .querySelector(".sendMessage")
+          .addEventListener("click", (event) => {
+            event.currentTarget.classList.add("is-loading");
+            event.currentTarget.disabled = true;
+
+            document
+              .querySelector(".result")
+              .parentElement.classList.add("is-hidden");
+            document
+              .querySelector(".error")
+              .parentElement.classList.add("is-hidden");
+
+            let currHour = new Date();
+
+            const userMsgTemplate = `<div class="columns">
+                                            <div class="column is-one-third"></div>
+                                            <div class="column">
+                                                <div class="notification is-success">
+                                                    <h6 class="subtitle is-6">${
+                                                      currHour.getHours() +
+                                                      ":" +
+                                                      currHour.getMinutes()
+                                                    }</h6>
+                                                    ${
+                                                      document.querySelector(
+                                                        ".message"
+                                                      ).value
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>`;
+
+            let chatBox = document.querySelector(".messageHistory");
+
+            chatBox.innerHTML += userMsgTemplate;
+            chatBox.scrollIntoView(false);
+
+            const payload = JSON.stringify({
+              prompt: document.querySelector(".message").value,
+            });
+
+            document.querySelector(".message").value = "";
+
+            fetch("llm.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: payload,
+            })
+              .then((response) => {console.log("responsex", response); return response.json();})
+              .then((data) => {
+                console.log("x")
                 let currHour = new Date();
 
-                const userMsgTemplate = `<div class="columns">
-                                        <div class="column is-one-third"></div>
-                                        <div class="column">
-                                            <div class="notification is-success">
-                                                <h6 class="subtitle is-6">${currHour.getHours() + ":" + currHour.getMinutes()}</h6>
-                                                ${document.querySelector(".message").value}
-                                            </div>
-                                        </div>
-                                    </div>`
+                console.log("data.output", data.output)
+                //data.responseMessage = data.output.replace("\n", "<br>");
 
-
-                let chatBox = document.querySelector(".messageHistory");
-
-                chatBox.innerHTML += userMsgTemplate;
-                chatBox.scrollIntoView(false);
-
-                const payload = JSON.stringify({
-                    "message": document.querySelector(".message").value
-                });
-
-                document.querySelector(".message").value = "";
-
-                fetch('llm.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: payload,
-                }).then(response => response.json())
-                    .then(data => {
-
-                        let currHour = new Date();
-
-                        data.responseMessage = data.output.replace("\n", "<br>");
-
-                        let aiMsgTemplate = `<div class="columns">
+                let aiMsgTemplate = `<div class="columns">
                                                 <div class="column">
                                                     <div class="notification is-info">
-                                                        <h6 class="subtitle is-6">${currHour.getHours() + ":" + currHour.getMinutes()}</h6>
-                                                        ${data.responseMessage}
+                                                        <h6 class="subtitle is-6">${
+                                                          currHour.getHours() +
+                                                          ":" +
+                                                          currHour.getMinutes()
+                                                        }</h6>
+                                                        ${data.output}
                                                     </div>
                                                 </div>
                                                 <div class="column is-one-third"></div>
-                                            </div>`
+                                            </div>`;
 
-                        chatBox.innerHTML += aiMsgTemplate;
-                        chatBox.scrollIntoView(false);
+                chatBox.innerHTML += aiMsgTemplate;
+                chatBox.scrollIntoView(false);
 
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error);
-                    }).finally(() => {
-                        document.querySelector(".sendMessage").classList.remove('is-loading');
-                        document.querySelector(".sendMessage").disabled = false;
-                    });
-            });
+                // New fetch call to sql.php with data.responseMessage
+                return fetch("sql.php", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    sql: data.responseMessage,
+                  }),
+                });
+              })
+              .then((response) => response.json()) // Handle the response from sql.php
+              .then((sqlData) => {
 
-        });
+                console.log("test")
+                // Handle sqlData if needed, e.g., update UI
+                let currHour = new Date();
+
+                let htmlOutput = formatJSONasHTML(sqlData.output)
+                console.log("htmlOutput", htmlOutput)
+
+                let aiMsgTemplate = `<div class="columns">
+                                                <div class="column">
+                                                    <div class="notification is-info">
+                                                        <h6 class="subtitle is-6">${
+                                                          currHour.getHours() +
+                                                          ":" +
+                                                          currHour.getMinutes()
+                                                        }</h6>
+                                                        ${htmlOutput}
+                                                    </div>
+                                                </div>
+                                                <div class="column is-one-third"></div>
+                                            </div>`;
+
+                chatBox.innerHTML += aiMsgTemplate;
+                chatBox.scrollIntoView(false);
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+              })
+              .finally(() => {
+                document
+                  .querySelector(".sendMessage")
+                  .classList.remove("is-loading");
+                document.querySelector(".sendMessage").disabled = false;
+              });
+          });
+      });
     </script>
-</head>
+  </head>
 
-<body>
+  <body>
     <section class="section">
-        <div class="container">
-            <div class="columns  box">
-                <div class="column">
-                    <div class="columns">
-                        <div class="column has-text-centered">
-                            <h1 class="title">
-                                Natural Language 2 SQL Demo
-                            </h1>
-                        </div>
-                    </div>
-                    <div class="columns">
-                        <div class="column">
-                            <div class="card-content" style="height:600px;overflow:auto;flex-grow: 1;flex-shrink: 1;">
-                                <div class="content messageHistory">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="columns">
-                        <div class="column">
-                            <input class="input message" type="text" placeholder="Type your message" value="What was the maximum boat speed reached by England?">
-                        </div>
-                        <div class="column is-narrow">
-                            <button class="button is-info sendMessage">
-                                Send
-                            </button>
-                        </div>
-                    </div>
-
+      <div class="container">
+        <div class="columns box">
+          <div class="column">
+            <div class="columns">
+              <div class="column has-text-centered">
+                <h1 class="title">Natural Language 2 SQL Demo</h1>
+              </div>
+            </div>
+            <div class="columns">
+              <div class="column">
+                <div
+                  class="card-content"
+                  style="
+                    height: 600px;
+                    overflow: auto;
+                    flex-grow: 1;
+                    flex-shrink: 1;
+                  "
+                >
+                  <div class="content messageHistory"></div>
                 </div>
+              </div>
             </div>
-            <div class="columns box is-hidden">
-                <div class="column result"></div>
+
+            <div class="columns">
+              <div class="column">
+                <input
+                  class="input message"
+                  type="text"
+                  placeholder="Type your message"
+                  value="What was the maximum boat speed reached by England?"
+                />
+              </div>
+              <div class="column is-narrow">
+                <button class="button is-info sendMessage">Send</button>
+              </div>
             </div>
-            <div class="columns box is-hidden">
-                <div class="column notification is-danger error has-text-centered">
-                </div>
-            </div>
+          </div>
         </div>
+        <div class="columns box is-hidden">
+          <div class="column result"></div>
+        </div>
+        <div class="columns box is-hidden">
+          <div
+            class="column notification is-danger error has-text-centered"
+          ></div>
+        </div>
+      </div>
     </section>
-</body>
-
+  </body>
 </html>
