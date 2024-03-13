@@ -2,10 +2,11 @@
 require_once "config.php";
 
 // Constants
-const COHERE_API_ENDPOINT = "https://api.cohere.com/generate";
-const COHERE_API_KEY = "9n2XyF7AoqIyBde0JTi2xXW4hgW2Z2js1cZ35PFj"; // Replace with your Cohere API key
-const NL2SQL_PROMPT = "
-  System: You are an assistant that helps translate natural language queries from the user to SQL. You also give interpret the returned data and explain it in natural language to the end user.
+const OPENAI_API_ENDPOINT = "https://api.openai.com/v1/completions";
+const OPENAI_API_KEY = "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"; // Replace with your OpenAI API key
+const NL2SQL_PROMPT = "You are an assistant that helps translate natural language queries from the user to SQL.
+  You interact with a database that returns you the result of the SQL.
+  Next, you interpret the result from the database and explain it in natural language to the end user.
   You have access to the following table in the database:
   { table name: 'SAILGP_SGP_STRM_PIVOT',
     table description: 'Each record holds the sensor values of one team/country for one particular moment (second) in the race'
@@ -22,7 +23,6 @@ const NL2SQL_PROMPT = "
       { column name: 'MANEUVER', description: 'whether boat is currently in a maneuver, values Y or N' },
       { column name: 'BDE_LEG_NUM_UNK', description: 'the number of the leg/track the boat is currently in. Value 7 means the race has ended (crossed the finish line).' }
   ] }
-  DON'T ADD ANYTHING in the response that's not SQL. E.g. don't explain the SQL or give other comments. 
   User: When did each team first reach leg 7?
   Assistant: SELECT B_NAME, TIME_GRP FROM SAILGP_SGP_STRM_PIVOT WHERE BDE_LEG_NUM_UNK = 7 ORDER BY TIME_GRP ASC
   Database: The result is [{\"B_NAME\":\"GBR\",\"TIME_GRP\":703},{\"B_NAME\":\"AUS\",\"TIME_GRP\":739},{\"B_NAME\":\"ESP\",\"TIME_GRP\":764},{\"B_NAME\":\"NZL\",\"TIME_GRP\":766},{\"B_NAME\":\"FRA\",\"TIME_GRP\":768},{\"B_NAME\":\"DEN\",\"TIME_GRP\":789}]
@@ -34,6 +34,7 @@ const NL2SQL_PROMPT = "
   User: ";
 
 /* Some questions:
+  DON'T ADD ANYTHING in the response that's not SQL. E.g. don't explain the SQL or give other comments. 
 WORKS: WHAT WAS THE AVERAGE SPEEDS OF ALL TEAMS? INCLUDE REAL COUNTRY NAMES.
 WORKS: WHICH TEAM HAD THE HIGHEST AVERAGE SPEED?
 WORKS: WHAT WAS THE TIME (MINIMUM TIME) THAT EACH TEAM REACHED LEG 6? INCLUDE THE TEAM NAMES.
@@ -61,6 +62,53 @@ const SUGGESTED_TEXTS = [
   "When did each team first reach leg 7? Include the team names."
 ];
 
+function callOpenAIAPI($prompt)
+{
+  $ch = curl_init();
+
+  $data = [
+    'model' => 'gpt-3.5-turbo-instruct',
+    'prompt' => $prompt,
+    'temperature' => 0.0,
+    'max_tokens' => 1000,
+    'top_p' => 1,
+    'frequency_penalty' => 0,
+    'presence_penalty' => 0,
+    'stop' => ["\n", "Database:", "User:"],
+  ];
+
+  curl_setopt($ch, CURLOPT_URL, OPENAI_API_ENDPOINT);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer ' . OPENAI_API_KEY,
+    'Content-Type: application/json'
+  ]);
+
+  $response = curl_exec($ch);
+  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  if (curl_errno($ch)) {
+    throw new Exception('Curl error: ' . curl_error($ch));
+  }
+
+  curl_close($ch);
+
+  if ($httpCode != 200) {
+    throw new Exception('An error occurred while processing your request with HTTP code: ' . $httpCode);
+  }
+
+  $resultArray = json_decode($response, true);
+
+  // Check if the text ends with "Database:" and remove it if it does
+  if (substr($resultArray['choices'][0]['text'], -9) === "Database:") {
+    error_log('Removed stop sequence Database: from language model response');
+    $resultArray['choices'][0]['text'] = substr($resultArray['choices'][0]['text'], 0, -9);
+  }
+  return $resultArray['choices'][0]['text'];
+}
+
+/*
 function callCohereAPI($prompt)
 {
 
@@ -107,6 +155,7 @@ function callCohereAPI($prompt)
   }
   return $resultArray['text'];
 }
+*/
 
 function formatJSONasHTML($jsonData)
 {
@@ -193,14 +242,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['prompt'])) {
   try {
     $prompt = NL2SQL_PROMPT . $_POST['prompt'] . "\nAssistant: SELECT ";
     error_log('$prompt' . $prompt);
-    $sql = "SELECT " . callCohereAPI($prompt);
+    $sql = "SELECT " . callOpenAIAPI($prompt);
     error_log('$sql' . $sql);
     $jsonData = executeSQLAndGetJSON($link, $sql);
     error_log('$jsonData' . $jsonData);
     $formattedData = formatJSONasHTML($jsonData);
     $followUpPrompt = $prompt . "\nDatabase: The result is" . $jsonData . "\nAssistant: Explanation - ";
     error_log('$followUpPrompt' . $followUpPrompt);
-    $naturalLanguageAnswer = callCohereAPI($followUpPrompt);
+    $naturalLanguageAnswer = callOpenAIAPI($followUpPrompt);
     error_log('$naturalLanguageAnswer' . $naturalLanguageAnswer);
   } catch (Exception $e) {
     $error = $e->getMessage();
