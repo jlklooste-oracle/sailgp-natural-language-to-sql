@@ -108,11 +108,11 @@
               body: payload,
             })
               .then((response) => {console.log("responsex", response); return response.json();})
-              .then((data) => {
+              .then((llmJsonResponse) => {
                 console.log("x")
                 let currHour = new Date();
 
-                console.log("data.output", data.output)
+                console.log("llmJsonResponse.output", llmJsonResponse.output)
                 //data.responseMessage = data.output.replace("\n", "<br>");
 
                 let aiMsgTemplate = `<div class="columns">
@@ -123,7 +123,7 @@
                                                           ":" +
                                                           currHour.getMinutes()
                                                         }</h6>
-                                                        ${data.output}
+                                                        ${llmJsonResponse.output}
                                                     </div>
                                                 </div>
                                                 <div class="column is-one-third"></div>
@@ -132,25 +132,25 @@
                 chatBox.innerHTML += aiMsgTemplate;
                 chatBox.scrollIntoView(false);
 
-                // New fetch call to sql.php with data.responseMessage
+                // New fetch call to sql.php with llmJsonResponse.responseMessage
                 return fetch("sql.php", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    sql: data.responseMessage,
+                    sql: llmJsonResponse.responseMessage,
                   }),
                 });
               })
               .then((response) => response.json()) // Handle the response from sql.php
-              .then((sqlData) => {
+              .then((databaseJsonResponse) => {
 
                 console.log("test")
                 // Handle sqlData if needed, e.g., update UI
                 let currHour = new Date();
 
-                let htmlOutput = formatJSONasHTML(sqlData.output)
+                let htmlOutput = formatJSONasHTML(databaseJsonResponse.output)
                 console.log("htmlOutput", htmlOutput)
 
                 let aiMsgTemplate = `<div class="columns">
