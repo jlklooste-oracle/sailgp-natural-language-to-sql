@@ -2,7 +2,7 @@
 
 // Constants
 const OPENAI_API_ENDPOINT = "https://api.openai.com/v1/completions";
-const OPENAI_API_KEY = "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"; //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"; //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"; // Replace with your OpenAI API key
+const OPENAI_API_KEY = "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"; //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"; //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"; // Replace with your OpenAI API key
 const NL2SQL_PROMPT = "You are an assistant that helps translate natural language queries from the user to SQL.
   You interact with a database that returns you the result of the SQL.
   Next, you interpret the result from the database and explain it in natural language to the end user.
@@ -37,7 +37,7 @@ const NL2SQL_PROMPT = "You are an assistant that helps translate natural languag
   {
       $ch = curl_init();
     
-      error_log("$finalPrompt" . $finalPrompt);
+      //error_log("$finalPrompt" . $finalPrompt);
       $data = [
         'model' => 'gpt-3.5-turbo-instruct',
         'prompt' => $finalPrompt,
@@ -80,8 +80,21 @@ const NL2SQL_PROMPT = "You are an assistant that helps translate natural languag
   // Read the JSON payload from the request (the input from the user)
   $payload = json_decode(file_get_contents('php://input'), true);
   $prompt = $payload['prompt'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
-  $finalPrompt = NL2SQL_PROMPT . $prompt . "\r\nAssistant: SELECT";
-  error_log("finalPrompt" . $finalPrompt);
+  $sql = $payload['sql'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
+  error_log("$prompt: " . $prompt);
+  error_log("$sql: " . $sql);
+  //error_log("prompt: " . prompt);
+  $dataset = $payload['dataset'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
+  if ($sql === '') {
+    //Construct the prompt to translate the natural language question to a SQL query
+    $finalPrompt = NL2SQL_PROMPT . $prompt . "\r\nAssistant: SELECT";
+  }
+  else
+  {
+    //Construct the prompt to take the output from the database and translate it into a natural language answer to the question
+    $finalPrompt = NL2SQL_PROMPT . $prompt . "\r\nAssistant: " . $sql . "\r\nDatabase: " .$dataset . "\r\nAssistant: Explanation -";
+  }
+  //error_log("finalPrompt" . $finalPrompt);
   $response = nl2sql($finalPrompt);
   error_log("response" . $response);
   $responseJSON = json_encode(['output' => $response]);
