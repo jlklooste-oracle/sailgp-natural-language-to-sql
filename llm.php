@@ -2,7 +2,7 @@
 
 // Constants
 const OPENAI_API_ENDPOINT = "https://api.openai.com/v1/completions";
-const OPENAI_API_KEY = "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"; //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"; //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"; // Replace with your OpenAI API key
+const OPENAI_API_KEY = "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"; //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"; //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"; // Replace with your OpenAI API key
 const NL2SQL_PROMPT = "You are an assistant that helps translate natural language queries from the user to SQL.
   You interact with a database that returns you the result of the SQL.
   Next, you interpret the result from the database and explain it in natural language to the end user.
@@ -74,7 +74,7 @@ const NL2SQL_PROMPT = "You are an assistant that helps translate natural languag
       }
     
       $resultArray = json_decode($response, true);
-      return "SELECT " . $resultArray['choices'][0]['text'];
+      return $resultArray['choices'][0]['text'];
   }
   
   // Read the JSON payload from the request (the input from the user)
@@ -88,14 +88,15 @@ const NL2SQL_PROMPT = "You are an assistant that helps translate natural languag
   if ($sql === '') {
     //Construct the prompt to translate the natural language question to a SQL query
     $finalPrompt = NL2SQL_PROMPT . $prompt . "\r\nAssistant: SELECT";
+    $response = "SELECT " . nl2sql($finalPrompt);
   }
   else
   {
     //Construct the prompt to take the output from the database and translate it into a natural language answer to the question
     $finalPrompt = NL2SQL_PROMPT . $prompt . "\r\nAssistant: " . $sql . "\r\nDatabase: " .$dataset . "\r\nAssistant: Explanation -";
+    $response = nl2sql($finalPrompt);
   }
   //error_log("finalPrompt" . $finalPrompt);
-  $response = nl2sql($finalPrompt);
   error_log("response" . $response);
   $responseJSON = json_encode(['output' => $response]);
   header('Content-Type: application/json');

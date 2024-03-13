@@ -4,6 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NL2SQL Demo</title>
+    <style>
+      .is-hidden {
+        display: none;
+      }
+    </style>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
@@ -106,9 +111,7 @@
                                                 <div class="column">
                                                     <div class="notification is-info">
                                                         <h6 class="subtitle is-6">Assistant - Create SQL statement</h6>
-                                                        ${
-                                                          llmJsonResponse.output
-                                                        }
+                                                        ${llmJsonResponse.output}
                                                     </div>
                                                 </div>
                                                 <div class="column is-one-third"></div>
