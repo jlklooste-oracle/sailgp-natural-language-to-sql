@@ -241,7 +241,8 @@
   color: var(--chat-user-color);
   background-color: var(--chat-user-background);
   border-radius: 10px;
-  padding: 10px 15px 12px 15px;
+  padding: 14px 25px 18px 25px;
+  margin-top: 50px;
   margin-left: auto;
   justify-content: flex-end;
   max-width: 520px;
@@ -254,7 +255,7 @@
   color: var(--chat-assistant-color);
   background-color: var(--chat-assistant-background);
   border-radius: 10px;
-  padding: 10px 15px 12px 15px;
+  padding: 14px 25px 18px 25px;
   margin-right: auto;
   justify-content: flex-start;
   max-width: 520px;
@@ -288,7 +289,7 @@
   width: 100vw;
   display: flex;
   justify-content: center;
-  bottom: 330px;
+  bottom: 350px;
   left: 0;
 }
 

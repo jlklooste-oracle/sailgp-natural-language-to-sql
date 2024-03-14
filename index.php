@@ -20,6 +20,7 @@ const SUGGESTED_TEXTS = [
   </style>
   <link rel="stylesheet" href="styles.css" />
   <script>
+    var WELCOME_MESSAGE = "Welcome to a demonstration of natural language to SQL on MySQL! I'm here to help you explore what happened during the SailGP race. You can ask about metrics such as the times teams reach specific legs of the race, boat speeds, angles relative to the wind, and much more. I will translate your question to SQL and handle the logic of querying the database and interpreting the results. What is your question?"
     function formatJSONasHTML(jsonData) {
       try {
         console.log("parsing", jsonData);
@@ -82,25 +83,25 @@ const SUGGESTED_TEXTS = [
       if (uiType === "userMessage") {
         html = `
             <div class="chatUser">
-              <img src="/images/user.png" style="width: 24px;" />${initialContent}</div>
+              <img src="/images/user.png" style="width: 20px;" />${initialContent ? initialContent : ''}</div>
             </div>
             `;
       }
 
-      //Display this as a chat answer (assistant answer in a bubble)
       if (uiType === "assistantMessage") {
         html = `
-            <div class="chatAssistant">
-              <div class="chatSystemIconHolder">
-                <img
-                  src="/images/typingIcon.gif"
-                  style="width: 24px; margin-top: 10px"
-                  class="chatSystemIcon"
-                />
-              </div>
-              <div class="content" style="font-weight: 300"></div>
-            </div>
-            `;
+      <div class="chatAssistant">
+        ${api !== null ? `
+          <div class="chatSystemIconHolder">
+            <img
+              src="/images/typingIcon.gif"
+              style="width: 24px; margin-top: 10px;"
+              class="chatSystemIcon"
+            />
+          </div>` : ''}
+        <div class="content" style="font-weight: 300">${initialContent ? initialContent : ''}</div>
+      </div>
+      `;
       }
 
       //Display this as a system message (prerequisite step before we get response)
@@ -115,7 +116,7 @@ const SUGGESTED_TEXTS = [
                 />
                 <div class="chatSystemText">
                   ${title}
-                  <div class="content" style="font-weight: 300"></div>
+                  <div class="content" style="font-weight: 300">${initialContent ? initialContent : ''}</div>
                 </div>
               </div>
             </div>
@@ -124,7 +125,9 @@ const SUGGESTED_TEXTS = [
 
       parentDOM.innerHTML += html;
       parentDOM.scrollIntoView(false);
+      console.log("a")
       if (api !== null) {
+        console.log("b")
         let iconReference = parentDOM
           .querySelectorAll(".chatSystemIcon")
           .item(parentDOM.querySelectorAll(".chatSystemIcon").length - 1);
@@ -138,6 +141,7 @@ const SUGGESTED_TEXTS = [
           },
           body: apiBody,
         });
+        console.log("c")
         let jsonResponse = await response.json();
         console.log("jsonResponse.output", jsonResponse.output);
         iconReference.src = "/images/checkedGreenIcon.svg";
@@ -150,6 +154,7 @@ const SUGGESTED_TEXTS = [
         }
         result = jsonResponse.output;
       }
+      console.log("returning")
       //data.responseMessage = data.output.replace("\n", "<br>");
       return result
     }
@@ -217,6 +222,21 @@ const SUGGESTED_TEXTS = [
         document.querySelector(".sendMessage").disabled = false;
       }
     }
+
+    window.onload = function () {
+      //Add a welcome message onload
+      console.log("adding message")
+      let chatBox = document.querySelector(".chatContainerFlexCol");
+      addMessageToChat({
+        title: null,
+        initialContent: WELCOME_MESSAGE, // make sure messageValue is defined somewhere
+        uiType: "assistantMessage",
+        api: null,
+        apiBody: null,
+        parentDOM: chatBox,
+        formattingFunction: null,
+      })
+    };
   </script>
 </head>
 
@@ -246,7 +266,9 @@ const SUGGESTED_TEXTS = [
   </div>
 
   <div class="container">
-    <div class="chatContainerFlexCol"></div>
+    <div class="chatContainerFlexCol">
+      <!--This is where the chat bubbles are added-->
+    </div>
   </div>
 
   <div class="chatInputFooter">
