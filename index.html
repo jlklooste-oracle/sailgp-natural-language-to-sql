@@ -57,7 +57,13 @@
           .replace(/'/g, "&#039;");
       }
 
-      async function addAssistantMessageToChat({ title, api, apiBody, parentDOM }) {
+      async function addAssistantMessageToChat({
+        title,
+        api,
+        apiBody,
+        parentDOM,
+        formattingFunction, //In case we want to format the Json output as a HTML table for example
+      }) {
         let systemMessage = `
             <div class="chatSystem">
               <div class="chatSystemIconHolder">
@@ -92,9 +98,14 @@
         console.log("jsonResponse.output", jsonResponse.output);
         iconReference.src = "/images/checkedGreenIcon.svg";
         console.log("jsonResponse.output", jsonResponse.output);
-        commentReference.innerHTML = jsonResponse.output;
+        if (formattingFunction !== null) {
+          const formattedOutput = formattingFunction(jsonResponse.output)
+          commentReference.innerHTML = formattedOutput;
+        } else {
+          commentReference.innerHTML = jsonResponse.output;
+        }
         //data.responseMessage = data.output.replace("\n", "<br>");
-        return jsonResponse.output
+        return jsonResponse.output;
       }
 
       async function handleSendMessage(event) {
@@ -126,6 +137,7 @@
             api: "llm.php",
             apiBody: JSON.stringify({ prompt: messageValue }),
             parentDOM: chatBox,
+            formattingFunction: null,
           });
 
           //Step 3: Run SQL on database, we get the results as JSON, then convert that to HTML table format
@@ -134,6 +146,7 @@
             api: "sql.php",
             apiBody: JSON.stringify({ sql: sql.output }),
             parentDOM: chatBox,
+            formattingFunction: formatJSONasHTML,
           });
 
           /*
