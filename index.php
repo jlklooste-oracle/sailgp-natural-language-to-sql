@@ -67,18 +67,45 @@ const SUGGESTED_TEXTS = [
         .replace(/'/g, "&#039;");
     }
 
-    async function addAssistantMessageToChat({
+    async function addMessageToChat({
       title,
+      initialContent,
       uiType,
       api,
       apiBody,
       parentDOM,
       formattingFunction, //In case we want to format the Json output as a HTML table for example
     }) {
-      let systemMessage = null;
+      let result = null;
+      let html = null;
+      //Display this as a chat question (user question in a bubble)
+      if (uiType === "userMessage") {
+        html = `
+            <div class="chatUser">
+              <img src="/images/user.png" style="width: 24px;" />${initialContent}</div>
+            </div>
+            `;
+      }
+
+      //Display this as a chat answer (assistant answer in a bubble)
+      if (uiType === "assistantMessage") {
+        html = `
+            <div class="chatAssistant">
+              <div class="chatSystemIconHolder">
+                <img
+                  src="/images/typingIcon.gif"
+                  style="width: 24px; margin-top: 10px"
+                  class="chatSystemIcon"
+                />
+              </div>
+              <div class="content" style="font-weight: 300"></div>
+            </div>
+            `;
+      }
+
+      //Display this as a system message (prerequisite step before we get response)
       if (uiType === "systemMessage") {
-        //Display this as a system message (prerequisite step)
-        systemMessage = `
+        html = `
             <div class="chatSystem">
               <div class="chatSystemIconHolder">
                 <img
@@ -95,49 +122,36 @@ const SUGGESTED_TEXTS = [
             `;
       }
 
-      //Display this as a chat answer (in a bubble)
-      if (uiType === "assistantMessage") {
-        systemMessage = `
-            <div class="chatAssistant">
-              <div class="chatSystemIconHolder">
-                <img
-                  src="/images/typingIcon.gif"
-                  style="width: 24px; margin-top: 10px"
-                  class="chatSystemIcon"
-                />
-              </div>
-              <div class="content" style="font-weight: 300"></div>
-            </div>
-            `;
-      }
-
-      parentDOM.innerHTML += systemMessage;
+      parentDOM.innerHTML += html;
       parentDOM.scrollIntoView(false);
-      let iconReference = parentDOM
-        .querySelectorAll(".chatSystemIcon")
-        .item(parentDOM.querySelectorAll(".chatSystemIcon").length - 1);
-      let contentReference = parentDOM
-        .querySelectorAll(".content")
-        .item(parentDOM.querySelectorAll(".content").length - 1);
-      let response = await fetch(api, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: apiBody,
-      });
-      let jsonResponse = await response.json();
-      console.log("jsonResponse.output", jsonResponse.output);
-      iconReference.src = "/images/checkedGreenIcon.svg";
-      console.log("jsonResponse.output", jsonResponse.output);
-      if (formattingFunction !== null) {
-        const formattedOutput = formattingFunction(jsonResponse.output);
-        contentReference.innerHTML = formattedOutput;
-      } else {
-        contentReference.innerHTML = jsonResponse.output;
+      if (api !== null) {
+        let iconReference = parentDOM
+          .querySelectorAll(".chatSystemIcon")
+          .item(parentDOM.querySelectorAll(".chatSystemIcon").length - 1);
+        let contentReference = parentDOM
+          .querySelectorAll(".content")
+          .item(parentDOM.querySelectorAll(".content").length - 1);
+        let response = await fetch(api, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: apiBody,
+        });
+        let jsonResponse = await response.json();
+        console.log("jsonResponse.output", jsonResponse.output);
+        iconReference.src = "/images/checkedGreenIcon.svg";
+        console.log("jsonResponse.output", jsonResponse.output);
+        if (formattingFunction !== null) {
+          const formattedOutput = formattingFunction(jsonResponse.output);
+          contentReference.innerHTML = formattedOutput;
+        } else {
+          contentReference.innerHTML = jsonResponse.output;
+        }
+        result = jsonResponse.output;
       }
       //data.responseMessage = data.output.replace("\n", "<br>");
-      return jsonResponse.output;
+      return result
     }
 
     async function handleSendMessage(event) {
@@ -146,14 +160,21 @@ const SUGGESTED_TEXTS = [
         const messageValue = document.querySelector(".inputFieldChat").value;
 
         //Step 1. Add user message
-        const userMsgTemplate = `<div class="chatUser"><img src="/images/user.png" style="width: 24px;" />${messageValue}</div>`;
         let chatBox = document.querySelector(".chatContainerFlexCol");
-        chatBox.innerHTML += userMsgTemplate;
-        chatBox.scrollIntoView(false);
+        await addMessageToChat({
+          title: null,
+          initialContent: messageValue,
+          uiType: "userMessage",
+          api: null,
+          apiBody: null,
+          parentDOM: chatBox,
+          formattingFunction: null,
+        });
 
         //Step 2. Translate the natural language question into a SQL statement
-        const sql = await addAssistantMessageToChat({
+        const sql = await addMessageToChat({
           title: "Translating question to SQL",
+          initialContent: null,
           uiType: "systemMessage",
           api: "llm.php",
           apiBody: JSON.stringify({ prompt: messageValue }),
@@ -162,8 +183,9 @@ const SUGGESTED_TEXTS = [
         });
 
         //Step 3: Run SQL on database, we get the results as JSON, then convert that to HTML table format
-        const databaseJsonResponse = await addAssistantMessageToChat({
+        const databaseJsonResponse = await addMessageToChat({
           title: "Running SQL",
+          initialContent: null,
           uiType: "systemMessage",
           api: "sql.php",
           apiBody: JSON.stringify({ sql: sql.output }),
@@ -175,8 +197,9 @@ const SUGGESTED_TEXTS = [
         //Input is a) natural language question, b) the resulting SQL statement and c) the resulting dataset.
         //Output is the natural language answer to the question.
         console.log("databaseJsonResponse", databaseJsonResponse);
-        const naturalLanguageAnswer = await addAssistantMessageToChat({
+        const naturalLanguageAnswer = await addMessageToChat({
           title: null,
+          initialContent: null,
           uiType: "assistantMessage",
           api: "llm.php",
           apiBody: JSON.stringify({
