@@ -10,7 +10,7 @@
       }
     </style>
     <link rel="stylesheet" href="styles.css" />
-    <script type="module">
+    <script>
       function formatJSONasHTML(jsonData) {
         try {
           const data = JSON.parse(jsonData);
@@ -57,77 +57,54 @@
           .replace(/'/g, "&#039;");
       }
 
-      window.addEventListener("load", (event) => {
-        document
-          .querySelector(".sendMessage")
-          .addEventListener("click", async (event) => {
-            try {
-              event.currentTarget.classList.add("is-loading");
-              event.currentTarget.disabled = true;
+      async function handleSendMessage(event) {
+        try {
+          event.currentTarget.classList.add("is-loading");
+          /*
+          event.currentTarget.disabled = true;
 
-              document
-                .querySelector(".result")
-                .parentElement.classList.add("is-hidden");
-              document
-                .querySelector(".error")
-                .parentElement.classList.add("is-hidden");
+          document
+            .querySelector(".result")
+            .parentElement.classList.add("is-hidden");
+          document
+            .querySelector(".error")
+            .parentElement.classList.add("is-hidden");
+          */
 
-              let currHour = new Date();
+          // Similar process as before, just now in a separate function
+          let currHour = new Date();
+          const messageValue = document.querySelector(".inputFieldChat").value;
 
-              //Step 1: Add the user input to the HTML output
-              const messageValue = document.querySelector(".message").value; // Store the message value before clearing
+          const userMsgTemplate = `<div class="chatUser">${messageValue}</div>`;
+          let chatBox = document.querySelector(".chatContainerFlexCol");
+          chatBox.innerHTML += userMsgTemplate;
+          chatBox.scrollIntoView(false);
 
-              const userMsgTemplate = `<div class="chatUser">
-                test
-                              </div>`;
-              //                              ${messageValue}
+          let response = await fetch("llm.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ prompt: messageValue }),
+          });
+          let llmJsonResponse = await response.json();
+          console.log("llmJsonResponse.output", llmJsonResponse.output);
+          //data.responseMessage = data.output.replace("\n", "<br>");
 
-              //Step 2: Call LLM to translate natural language to a SQL statement
-              let chatBox = document.querySelector(".chatContainerFlexCol");
-              chatBox.innerHTML += userMsgTemplate;
-              chatBox.scrollIntoView(false);
-
-              let aiMsgTemplate = `<div class="columns">
-                                                <div class="column">
-                                                    <div class="notification is-info">
-                                                        <h6 class="subtitle is-6">Assistant</h6>
-                                                    </div>
-                                                </div>
-                                                <div class="column is-one-third"></div>
-                                            </div>`;
-
-              //                                                        ${llmJsonResponse.output}
-              chatBox.innerHTML += aiMsgTemplate;
-              chatBox.scrollIntoView(false);
-
-              document.querySelector(".message").value = "";
-              let response = await fetch("llm.php", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  prompt: messageValue,
-                }),
-              });
-              let llmJsonResponse = await response.json();
-              console.log("llmJsonResponse.output", llmJsonResponse.output);
-              //data.responseMessage = data.output.replace("\n", "<br>");
-
-              //Step 3: Run SQL on database, we get the results as JSON, then convert that to HTML table format
-              response = await fetch("sql.php", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  sql: llmJsonResponse.responseMessage,
-                }),
-              });
-              let databaseJsonResponse = await response.json();
-              currHour = new Date();
-              let htmlOutput = formatJSONasHTML(databaseJsonResponse.output);
-              let sqlMsgTemplate = `<div class="columns">
+          //Step 3: Run SQL on database, we get the results as JSON, then convert that to HTML table format
+          response = await fetch("sql.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sql: llmJsonResponse.responseMessage,
+            }),
+          });
+          let databaseJsonResponse = await response.json();
+          currHour = new Date();
+          let htmlOutput = formatJSONasHTML(databaseJsonResponse.output);
+          let sqlMsgTemplate = `<div class="columns">
                                 <div class="column">
                                     <div class="notification is-info">
                                         <h6 class="subtitle is-6">Assistant - Execute SQL</h6>
@@ -136,28 +113,28 @@
                                 </div>
                                 <div class="column is-one-third"></div>
                             </div>`;
-              chatBox.innerHTML += sqlMsgTemplate;
-              chatBox.scrollIntoView(false);
+          chatBox.innerHTML += sqlMsgTemplate;
+          chatBox.scrollIntoView(false);
 
-              //Step 4: Call LLM to translate results into natural language
-              //Input is a) natural language question, b) the resulting SQL statement and c) the resulting dataset.
-              //Output is the natural language answer to the question.
-              let body = {
-                prompt: messageValue,
-                sql: llmJsonResponse.output,
-                dataset: databaseJsonResponse.output,
-              };
-              console.log(">>>body for final llm call", body);
-              response = await fetch("llm.php", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(body),
-              });
-              let llmFinalJsonResponse = await response.json();
+          //Step 4: Call LLM to translate results into natural language
+          //Input is a) natural language question, b) the resulting SQL statement and c) the resulting dataset.
+          //Output is the natural language answer to the question.
+          let body = {
+            prompt: messageValue,
+            sql: llmJsonResponse.output,
+            dataset: databaseJsonResponse.output,
+          };
+          console.log(">>>body for final llm call", body);
+          response = await fetch("llm.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+          let llmFinalJsonResponse = await response.json();
 
-              let finalMsgTemplate = `<div class="columns">
+          let finalMsgTemplate = `<div class="columns">
                                   <div class="column">
                                       <div class="notification is-info">
                                           <h6 class="subtitle is-6">Assistant - Create natural language answer</h6>
@@ -167,18 +144,15 @@
                                   <div class="column is-one-third"></div>
                               </div>`;
 
-              chatBox.innerHTML += finalMsgTemplate;
-              chatBox.scrollIntoView(false);
-            } catch (error) {
-              console.error("Error:", error);
-            } finally {
-              document
-                .querySelector(".sendMessage")
-                .classList.remove("is-loading");
-              document.querySelector(".sendMessage").disabled = false;
-            }
-          });
-      });
+          chatBox.innerHTML += finalMsgTemplate;
+          chatBox.scrollIntoView(false);
+        } catch (error) {
+          console.error("Error:", error);
+        } finally {
+          document.querySelector(".sendMessage").classList.remove("is-loading");
+          document.querySelector(".sendMessage").disabled = false;
+        }
+      }
     </script>
   </head>
 
@@ -215,93 +189,8 @@
     </div>
 
     <div class="container">
-      <div
-        class="chatContainerFlexCol"
-        style="border: 1; border-style: solid"
-      ></div>
+      <div class="chatContainerFlexCol"></div>
     </div>
-
-    <!--
-    <div
-      style={{
-        width: "100vw",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: `#343541`,
-        height: "112px",
-        position: "fixed",
-        bottom: 0,
-      }}
-    >
-      <div
-        style={{
-          paddingTop: "10px",
-          paddingBottom: "10px",
-          width: "600px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "15px",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#40414f",
-            borderRadius: "12px",
-            display: "flex",
-            alignItems: "center",
-            paddingRight: "10px",
-          }}
-        >
-          <div
-            style={{
-              padding: "13px",
-              height: "50px",
-              flexGrow: 1,
-            }}
-          >
-            <input
-              className="inputFieldChat"
-              style={{
-                width: "100%",
-                border: "none",
-                outline: "none",
-                padding: "0px",
-              }}
-              autoFocus
-              placeholder="Send a message"
-              value={newChatLine}
-              onChange={(event) => setNewChatLine(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  addToChat();
-                }
-              }}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: "32px",
-              height: "32px",
-              borderRadius: "5px",
-              backgroundColor: newChatLine ? "#d18ee2" : "transparent",
-              cursor: newChatLine ? "pointer" : "not-allowed",
-            }}
-            onClick={newChatLine ? addToChat : null}
-          >
-            <img
-              src={sendIcon}
-              alt="Send"
-              width="20px"
-              style={{ filter: "invert(100%)" }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>-->
 
     <div class="chatInputFooter">
       <div class="chatBox">
@@ -310,13 +199,15 @@
           autofocus
           placeholder="Type your question"
           value="What was the maximum boat speed reached by England?"
-          onKeyDown=...
+          onkeypress="if(event.keyCode === 13) {handleSendMessage(event);}"
         />
         <img
-                src="/images/sendIcon.svg"
-                alt="Send"
-                width="20px"
-              />
+          src="/images/sendIcon.svg"
+          alt="Send"
+          width="20px"
+          class="sendMessage"
+          onclick="handleSendMessage(event)"
+        />
       </div>
     </div>
 
@@ -332,44 +223,4 @@
       </div>
     </div>
   </body>
-
-  <!--  <body>
-    <section class="section">
-      <div class="container">
-        <div class="columns box">
-          <div class="column">
-            <div class="columns">
-              <div class="column has-text-centered">
-                <h1 class="title">Natural Language 2 SQL Demo</h1>
-              </div>
-            </div>
-            <div class="chatContainerFlexCol">
-            </div>
-
-            <div class="columns">
-              <div class="column">
-                <input
-                  class="input message"
-                  type="text"
-                  placeholder="Type your message"
-                  value="What was the maximum boat speed reached by England?"
-                />
-              </div>
-              <div class="column is-narrow">
-                <button class="button is-info sendMessage">Send</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="columns box is-hidden">
-          <div class="column result"></div>
-        </div>
-        <div class="columns box is-hidden">
-          <div
-            class="column notification is-danger error has-text-centered"
-          ></div>
-        </div>
-      </div>
-    </section>
-  </body>
---></html>
+</html>

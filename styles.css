@@ -7,35 +7,39 @@
   --button-text-color: #ffffff;
   --button-background-hover: #161513;
   --button-background: #312d2a;
-  --header-title: #FBF9F8;
+  --header-title: #fbf9f8;
   --chat-user-color: #312d2a;
-  --chat-user-background: #dddddd;
+  --chat-user-background: #bbbbbb;
   --chat-assistant-color: #dddddd;
   --chat-assistant-background: #312d2a;
   --chat-input-field-color: #000000;
-  --oraclesans: "OracleSansVF","OracleSansFB",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif
+  --oraclesans: "OracleSansVF", "OracleSansFB", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 .bodystyles {
   font-family: FoundersGroteskWeb, -apple-system, BlinkMacSystemFont, Segoe UI,
     Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji,
     Segoe UI Symbol;
-  background-image: url("background.png");
+  /*background-image: url("background.png");*/
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   height: 100vh;
   overflow-y: hidden;
+  margin: 0px;
 }
 
 .header {
   position: fixed;
   top: 0;
-  left: 0;
   width: 100%;
   height: 111px;
   background-color: #103233;
-  box-sizing: border-box;
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -44,7 +48,6 @@
 .headertop {
   padding-left: 30px;
   height: 60px;
-  box-sizing: border-box;
   z-index: 999;
   display: flex;
   flex-direction: row;
@@ -144,9 +147,7 @@
 .footnote {
   position: fixed;
   bottom: 170px;
-  left: 0;
   height: 20px;
-  box-sizing: border-box;
   z-index: 999;
   padding-left: 40px;
   color: #000000;
@@ -157,11 +158,9 @@
 .footer {
   position: fixed;
   bottom: 0;
-  left: 0;
   width: 100%;
   height: 150px;
   background-color: #103233;
-  box-sizing: border-box;
   z-index: 999;
   display: flex;
   flex-direction: row;
@@ -267,23 +266,6 @@
   background-color: #f5f5f5;
 }
 
-.container {
-  padding-top: 140px;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  padding-bottom: 120px;
-}
-
-.chatContainerFlexCol {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  width: 800px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
 .chatUser {
   display: flex;
   align-items: flex-start;
@@ -310,20 +292,30 @@
   max-width: 520px;
 }
 
-.inputBox
-{
+.inputBox {
   background-color: #40414f;
-  border-radius: 12px; 
+  border-radius: 12px;
   display: flex;
   align-items: center;
   padding-right: 10px;
+}
+
+.container {
+  padding-top: 140px;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 120px;
+  border-style: solid;
+  border-color: red;
+  left: 0;
 }
 
 .chatInputFooter {
   position: fixed;
   bottom: 150px;
   left: 0;
-  width: 100%;
+  width: 100vw;
   height: 120px;
   box-sizing: border-box;
   z-index: 999;
@@ -331,6 +323,18 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  border-style: solid;
+  border-color: red;
+}
+
+.chatContainerFlexCol {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  border-style: solid;
 }
 
 .chatBox {
@@ -342,11 +346,10 @@
   padding-right: 20px;
   height: 53px;
   border-style: solid;
-  border-color: black;
+  border-color: purple;
 }
 
-.inputFieldChat
-{
+.inputFieldChat {
   background-color: transparent;
   border-style: none;
   font-size: 16px;
@@ -354,5 +357,5 @@
   flex-grow: 1;
   width: 100%;
   outline: none;
-  padding: 0px;
+  /*padding: 0px;*/
 }
