@@ -57,6 +57,46 @@
           .replace(/'/g, "&#039;");
       }
 
+      async function addAssistantMessageToChat({ title, api, apiBody, parentDOM }) {
+        let systemMessage = `
+            <div class="chatSystem">
+              <div class="chatSystemIconHolder">
+                <img
+                  src="/images/typingIcon.gif"
+                  style="width: 24px; margin-top: 10px"
+                  class="chatSystemIcon"
+                />
+                <div class="chatSystemText">
+                  ${title}
+                  <div class="comment" style="font-weight: 300"></div>
+                </div>
+              </div>
+            </div>
+            `;
+        parentDOM.innerHTML += systemMessage;
+        parentDOM.scrollIntoView(false);
+        let iconReference = parentDOM
+          .querySelectorAll(".chatSystemIcon")
+          .item(parentDOM.querySelectorAll(".chatSystemIcon").length - 1);
+        let commentReference = parentDOM
+          .querySelectorAll(".comment")
+          .item(parentDOM.querySelectorAll(".comment").length - 1);
+        let response = await fetch(api, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: apiBody,
+        });
+        let jsonResponse = await response.json();
+        console.log("jsonResponse.output", jsonResponse.output);
+        iconReference.src = "/images/checkedGreenIcon.svg";
+        console.log("jsonResponse.output", jsonResponse.output);
+        commentReference.innerHTML = jsonResponse.output;
+        //data.responseMessage = data.output.replace("\n", "<br>");
+        return jsonResponse.output
+      }
+
       async function handleSendMessage(event) {
         try {
           event.currentTarget.classList.add("is-loading");
@@ -81,49 +121,29 @@
           chatBox.scrollIntoView(false);
 
           //Step 2. Translate the natural language question into a SQL statement
-          let body = JSON.stringify({ prompt: messageValue })
-          let originalLabel = "Translating question to SQL"
-          let systemMessage = `
-          <div class="chatSystem">
-            <div class="chatSystemIconHolder">
-              <img
-                src="/images/typingIcon.gif"
-                style="width: 24px; margin-top: 10px"
-                class="chatSystemIcon"
-              />
-              <div class="chatSystemText">
-                ${startLabel}
-                <div class="comment" style="font-weight: 300"></div>
-              </div>
-            </div>
-          </div>
-          `
-          chatBox.innerHTML += systemMessage;
-          chatBox.scrollIntoView(false);
-          let iconReference = chatBox.querySelectorAll('.chatSystemIcon').item(chatBox.querySelectorAll('.chatSystemIcon').length - 1);
-          let commentReference = chatBox.querySelectorAll('.comment').item(chatBox.querySelectorAll('.comment').length - 1);
-          let response = await fetch("llm.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: body,
+          const sql = await addAssistantMessageToChat({
+            title: "Translating question to SQL",
+            api: "llm.php",
+            apiBody: JSON.stringify({ prompt: messageValue }),
+            parentDOM: chatBox,
           });
-          let llmJsonResponse = await response.json();
-          console.log("llmJsonResponse.output", llmJsonResponse.output);
-          iconReference.src = "/images/checkedGreenIcon.svg";
-          console.log("llmJsonResponse.output", llmJsonResponse.output)
-          commentReference.innerHTML = llmJsonResponse.output;
-          //data.responseMessage = data.output.replace("\n", "<br>");
 
           //Step 3: Run SQL on database, we get the results as JSON, then convert that to HTML table format
+          const databaseJsonResponse = await addAssistantMessageToChat({
+            title: "Running SQL",
+            api: "sql.php",
+            apiBody: JSON.stringify({ sql: sql.output }),
+            parentDOM: chatBox,
+          });
+
+          /*
           response = await fetch("sql.php", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              sql: llmJsonResponse.responseMessage,
+              sql: sql.output,
             }),
           });
           let databaseJsonResponse = await response.json();
@@ -140,6 +160,7 @@
                             </div>`;
           chatBox.innerHTML += sqlMsgTemplate;
           chatBox.scrollIntoView(false);
+          */
 
           //Step 4: Call LLM to translate results into natural language
           //Input is a) natural language question, b) the resulting SQL statement and c) the resulting dataset.
