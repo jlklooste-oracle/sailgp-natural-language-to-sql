@@ -1,8 +1,8 @@
 <?php
+include 'init.php'; // Include the constants file
 
 // Constants
 const OPENAI_API_ENDPOINT = "https://api.openai.com/v1/completions";
-const OPENAI_API_KEY = "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"; //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"; //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"; // Replace with your OpenAI API key
 const NL2SQL_PROMPT = "You are an assistant that helps translate natural language queries from the user to SQL.
   You interact with a database that returns you the result of the SQL.
   Next, you interpret the result from the database and explain it in natural language to the end user.
