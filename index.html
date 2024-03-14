@@ -13,6 +13,7 @@
     <script>
       function formatJSONasHTML(jsonData) {
         try {
+          console.log("parsing", jsonData)
           const data = JSON.parse(jsonData);
 
           if (!Array.isArray(data) || data.length === 0) {
@@ -66,7 +67,7 @@
         formattingFunction, //In case we want to format the Json output as a HTML table for example
       }) {
         let systemMessage = null;
-        if ((uiType === "systemMessage")) {
+        if (uiType === "systemMessage") {
           //Display this as a system message (prerequisite step)
           systemMessage = `
             <div class="chatSystem">
@@ -86,7 +87,7 @@
         }
 
         //Display this as a chat answer (in a bubble)
-        if ((uiType === "assistantMessage")) {
+        if (uiType === "assistantMessage") {
           systemMessage = `
             <div class="chatAssistant">
               <div class="chatSystemIconHolder">
@@ -96,6 +97,7 @@
                   class="chatSystemIcon"
                 />
               </div>
+              <div class="content" style="font-weight: 300"></div>
             </div>
             `;
         }
@@ -131,18 +133,6 @@
 
       async function handleSendMessage(event) {
         try {
-          event.currentTarget.classList.add("is-loading");
-          /*
-          event.currentTarget.disabled = true;
-
-          document
-            .querySelector(".result")
-            .parentElement.classList.add("is-hidden");
-          document
-            .querySelector(".error")
-            .parentElement.classList.add("is-hidden");
-          */
-
           let currHour = new Date();
           const messageValue = document.querySelector(".inputFieldChat").value;
 
@@ -172,64 +162,23 @@
             formattingFunction: formatJSONasHTML,
           });
 
-          /*
-          response = await fetch("sql.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              sql: sql.output,
-            }),
-          });
-          let databaseJsonResponse = await response.json();
-          currHour = new Date();
-          let htmlOutput = formatJSONasHTML(databaseJsonResponse.output);
-          let sqlMsgTemplate = `<div class="columns">
-                                <div class="column">
-                                    <div class="notification is-info">
-                                        <h6 class="subtitle is-6">Assistant - Execute SQL</h6>
-                                        ${htmlOutput}
-                                    </div>
-                                </div>
-                                <div class="column is-one-third"></div>
-                            </div>`;
-          chatBox.innerHTML += sqlMsgTemplate;
-          chatBox.scrollIntoView(false);
-          */
-
           //Step 4: Call LLM to translate results into natural language
           //Input is a) natural language question, b) the resulting SQL statement and c) the resulting dataset.
           //Output is the natural language answer to the question.
+          console.log("databaseJsonResponse", databaseJsonResponse)
           const naturalLanguageAnswer = await addAssistantMessageToChat({
             title: null,
             uiType: "assistantMessage",
             api: "llm.php",
             apiBody: JSON.stringify({
               prompt: messageValue,
-              sql: llmJsonResponse.output,
-              dataset: databaseJsonResponse.output,
+              sql: sql,
+              dataset: databaseJsonResponse,
             }),
             parentDOM: chatBox,
-            formattingFunction: formatJSONasHTML,
+            formattingFunction: null,
           });
 
-          /*
-          body = {};
-          console.log(">>>body for final llm call", body);
-          response = await fetch("llm.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          });
-          let llmFinalJsonResponse = await response.json();
-
-          let finalMsgTemplate = `<div class="chatAssistant"><img src="/images/sailgp2.png" style="width: 24px;" />${llmFinalJsonResponse.output}</div>`;
-          chatBox.innerHTML += finalMsgTemplate;
-          chatBox.scrollIntoView(false);
-          */
         } catch (error) {
           console.error("Error:", error);
         } finally {
@@ -274,26 +223,6 @@
 
     <div class="container">
       <div class="chatContainerFlexCol">
-        <div class="chatUser">
-          <img src="/images/user.png" style="width: 24px" />
-          Question from user
-        </div>
-        <div class="chatSystem">
-          <div class="chatSystemIcon">
-            <img
-              src="/images/typingIcon.gif"
-              style="width: 24px; margin-top: 10px"
-            />
-            <div class="chatSystemText">
-              Translating question to SQL
-              <span style="font-weight: 300">content</span>
-            </div>
-          </div>
-        </div>
-        <div class="chatAssistant">
-          <img src="/images/sailgp2.png" style="width: 24px" />
-          Answer from assistant
-        </div>
       </div>
     </div>
 
