@@ -366,3 +366,17 @@
   outline: none;
   /*padding: 0px;*/
 }
+
+.chatSystemIconHolder {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 60px;
+  align-content: center;
+}
+
+.chatSystemText {
+  margin-left: 10px;
+  display: flex; 
+  flex-direction: column
+}
