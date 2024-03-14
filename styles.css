@@ -13,18 +13,16 @@
   --chat-assistant-color: #dddddd;
   --chat-assistant-background: #312d2a;
   --chat-input-field-color: #000000;
-  --oraclesans: "OracleSansVF", "OracleSansFB", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
 }
 
 * {
   box-sizing: border-box;
-}
-
-.bodystyles {
   font-family: FoundersGroteskWeb, -apple-system, BlinkMacSystemFont, Segoe UI,
     Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji,
     Segoe UI Symbol;
+}
+
+.bodystyles {
   /*background-image: url("background.png");*/
   background-size: cover;
   background-position: center;
@@ -292,6 +290,20 @@
   max-width: 520px;
 }
 
+.chatSystem {
+  display: flex;
+  align-items: top;
+/*  align-items: flex-start;
+  gap: 10px;
+  color: var(--chat-user-color);
+  background-color: var(--chat-user-background);
+  border-radius: 10px;
+  padding: 10px 15px 12px 15px;
+  margin-left: auto;
+  justify-content: flex-end;
+  max-width: 520px;*/
+}
+
 .inputBox {
   background-color: #40414f;
   border-radius: 12px;
@@ -306,8 +318,6 @@
   display: flex;
   justify-content: center;
   padding-bottom: 120px;
-  border-style: solid;
-  border-color: red;
   left: 0;
 }
 
@@ -323,8 +333,6 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  border-style: solid;
-  border-color: red;
 }
 
 .chatContainerFlexCol {
@@ -334,7 +342,6 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  border-style: solid;
 }
 
 .chatBox {
