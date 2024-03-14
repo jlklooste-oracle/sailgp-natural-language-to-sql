@@ -172,12 +172,6 @@
   width: 200px;
   height: 40px;
 }
-.content {
-  display: flex;
-  padding-top: 150px;
-  padding-left: 40px;
-  flex-direction: column;
-}
 .title {
   color: white;
   font-size: 32px;
