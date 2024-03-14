@@ -1,11 +1,7 @@
 <?php
+include 'init.php'; // Include the constants file
 
-/*
 // Database credentials
-define('DB_SERVER', '10.0.1.73');// MDS server IP address
-define('DB_USERNAME', 'admin');
-define('DB_PASSWORD', '_Oracle12345');
-define('DB_NAME', 'SAILGP');
 $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 if ($link === false) {
     die("ERROR: Could not connect. " . mysqli_connect_error());
@@ -54,8 +50,9 @@ function executeSQLAndGetJSON($link, $sqlStatement)
     }
 
     return json_encode($data);
-}*/
+}
 
+/*
 function executeSQLAndGetJSON($link, $sqlStatement)
 {
     $data = [
@@ -68,8 +65,8 @@ function executeSQLAndGetJSON($link, $sqlStatement)
 
     return json_encode($data);
 }
-
 $link = "dummy";
+*/
 
 // Read the JSON payload from the request (the input from the user)
 $payload = json_decode(file_get_contents('php://input'), true);

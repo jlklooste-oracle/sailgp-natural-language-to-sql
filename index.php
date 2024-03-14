@@ -291,7 +291,7 @@ const SUGGESTED_TEXTS = [
     <div class="footerImages">
       <img src="logo.png" alt="SailGP Logo Web" />
       &nbsp;
-      <img src="world_sailing.svg" style="filter: brightness(0) invert(1)" alt="World Sailing Logo" />
+      <img src="/images/world_sailing.svg" style="filter: brightness(0) invert(1)" alt="World Sailing Logo" />
     </div>
   </div>
 </body>
