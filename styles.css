@@ -212,25 +212,26 @@
 }
 
 .theaderrow {
-  transform: skewX(-16deg);
+  /*transform: skewX(-16deg);*/
 }
 .theader {
-  background-color: #e7e7e7;
-  font-size: 20px;
-  color: #000000;
-  font-weight: 600;
-  padding-left: 20px;
-  padding-right: 20px;
-  height: 36px;
+  /*background-color: #e7e7e7;
+  font-size: 16px;
+  color: #000000;*/
+  font-weight: 300;
+  /*font-weight: 600;*/
+  /*height: 36px;*/
+  text-align: left;
+  /*text-decoration: underline;*/
 }
 .theaderdiv {
-  transform: skewX(16deg);
+  /*transform: skewX(16deg);*/
 }
 .tcell {
-  font-size: 20px;
+  /*font-size: 20px;
   color: #000000;
   font-weight: 300;
-  font-style: italic;
+  font-style: italic;*/
 }
 
 .suggested-texts {
