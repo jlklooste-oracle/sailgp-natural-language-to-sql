@@ -236,8 +236,7 @@ const SUGGESTED_TEXTS = [
       <?php endforeach; ?>
     </div>
     <div class="chatBox">
-      <input class="inputFieldChat" autofocus placeholder="Type your question"
-        value="What was the maximum boat speed reached by England?"
+      <input class="inputFieldChat" autofocus placeholder="Type your question" value=""
         onkeypress="if(event.keyCode === 13) {handleSendMessage(event);}" />
       <img src="/images/sendIcon.svg" alt="Send" width="20px" class="sendMessage" onclick="handleSendMessage(event)" />
     </div>

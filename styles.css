@@ -144,7 +144,7 @@
 
 .footnote {
   position: fixed;
-  bottom: 170px;
+  bottom: 165px;
   height: 20px;
   z-index: 999;
   padding-left: 40px;
@@ -302,7 +302,7 @@
 
 .chatInputFooter {
   position: fixed;
-  bottom: 160px;
+  bottom: 170px;
   left: 0;
   width: 100vw;
   /*height: 120px;*/
@@ -327,7 +327,7 @@
 .suggestion {
   background-color: white;
   border-style: solid;
-  border-color: black;
+  border-color: grey;
   border-radius: 10px;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -335,7 +335,7 @@
   padding-right: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: black;
+  color: #111111;
   margin-bottom: 5px;
   white-space: nowrap;
 }
@@ -353,7 +353,7 @@
   padding-right: 20px;
   height: 53px;
   border-style: solid;
-  border-color: purple;
+  /*border-color: purple;*/
 }
 
 .inputFieldChat {
