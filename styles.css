@@ -283,21 +283,21 @@
 }
 
 .container {
-  padding-top: 140px;
+  position: absolute;
+  top: 120px;
   width: 100vw;
   display: flex;
   justify-content: center;
-  padding-bottom: 120px;
+  bottom: 330px;
   left: 0;
 }
 
 .chatContainerFlexCol {
-  padding-top: 10px;
-  padding-bottom: 10px;
   width: 800px;
   display: flex;
   flex-direction: column;
   gap: 15px;
+  overflow-y: scroll;
 }
 
 .chatInputFooter {
