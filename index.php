@@ -253,9 +253,9 @@ const SUGGESTED_TEXTS = [
               prompt: messageValue,
               sql: sql,
               dataset: databaseJsonResponse,
-            }
+            })
           }
-          console.log("debug",debug)
+          console.log("debug", debug)
 
           error = null;
           ({ error, output: naturalLanguageAnswer } = await addMessageToChat({
