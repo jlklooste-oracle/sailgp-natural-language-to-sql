@@ -134,7 +134,7 @@ const SUGGESTED_TEXTS = [
                  <div class="chatSystemText">
                   ${title}
                   <div class="content" style="font-weight: 300">${initialContent ? initialContent : ''}</div>
-                  <div class="toggleDiv" onclick="toggleContentVisibility(this)">Hide</div>
+                  <div class="toggleDiv hidden" onclick="toggleContentVisibility(this)">Hide</div>
                 </div>
             </div>
             `;
@@ -152,6 +152,9 @@ const SUGGESTED_TEXTS = [
         let contentReference = parentDOM
           .querySelectorAll(".content")
           .item(parentDOM.querySelectorAll(".content").length - 1);
+        let visibilityToggler = parentDOM
+          .querySelectorAll(".toggleDiv")
+          .item(parentDOM.querySelectorAll(".toggleDiv").length - 1);
         let response = await fetch(api, {
           method: "POST",
           headers: {
@@ -170,6 +173,7 @@ const SUGGESTED_TEXTS = [
         } else {
           contentReference.innerHTML = jsonResponse.output;
         }
+        visibilityToggler.classList.remove("hidden"); //show the hide button
         await new Promise(resolve => setTimeout(resolve, 1000));
         result = jsonResponse.output;
       }
