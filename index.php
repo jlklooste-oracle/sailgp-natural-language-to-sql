@@ -118,7 +118,7 @@ const SUGGESTED_TEXTS = [
         ${api !== null ? `
           <div class="chatSystemIconHolder">
             <img
-              src="/images/typingIcon.gif"
+              src="./images/typingIcon.gif"
               style="width: 24px;"
               class="chatSystemIcon"
             />
@@ -134,7 +134,7 @@ const SUGGESTED_TEXTS = [
             <div class="chatSystem">
               <div class="chatSystemIconHolder">
                 <img
-                  src="/images/typingIcon.gif"
+                  src="./images/typingIcon.gif"
                   style="width: 24px;"
                   class="chatSystemIcon"
                 />
@@ -174,9 +174,9 @@ const SUGGESTED_TEXTS = [
         let jsonResponse = await response.json();
         console.log("jsonResponse.output", jsonResponse.output);
         if (jsonResponse.error) {
-          iconReference.src = "/images/errorIcon.png";
+          iconReference.src = "./images/errorIcon.png";
         } else {
-          iconReference.src = "/images/checkedGreenIcon.svg";
+          iconReference.src = "./images/checkedGreenIcon.svg";
         }
         if (formattingFunction !== null) {
           const formattedOutput = formattingFunction(jsonResponse.output);
@@ -324,7 +324,7 @@ const SUGGESTED_TEXTS = [
     <div class="chatBox">
       <input class="inputFieldChat" autofocus placeholder="Type your question" value=""
         onkeypress="if(event.keyCode === 13) {handleSendMessage(event);}" />
-      <img src="/images/sendIcon.svg" alt="Send" width="20px" class="sendMessage" onclick="handleSendMessage(event)" />
+      <img src="./images/sendIcon.svg" alt="Send" width="20px" class="sendMessage" onclick="handleSendMessage(event)" />
     </div>
   </div>
 
@@ -332,7 +332,7 @@ const SUGGESTED_TEXTS = [
     <div class="footerImages">
       <img src="logo.png" alt="SailGP Logo Web" />
       &nbsp;
-      <img src="/images/world_sailing.svg" style="filter: brightness(0) invert(1)" alt="World Sailing Logo" />
+      <img src="./images/world_sailing.svg" style="filter: brightness(0) invert(1)" alt="World Sailing Logo" />
     </div>
   </div>
 </body>
