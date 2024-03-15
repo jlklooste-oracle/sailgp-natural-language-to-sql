@@ -243,7 +243,6 @@ const SUGGESTED_TEXTS = [
         let naturalLanguageAnswer = null;
         if (!error) {
           // Reset error to null before the call
-          error = null;
 
           const debug = {
             title: null,
@@ -256,21 +255,22 @@ const SUGGESTED_TEXTS = [
               dataset: databaseJsonResponse,
             }
           }
-          console.log("debug", debug)
+          console.log("debug",debug)
 
-            ({ error, output: naturalLanguageAnswer } = await addMessageToChat({
-              title: null,
-              initialContent: null,
-              uiType: "assistantMessage",
-              api: "llm.php",
-              apiBody: JSON.stringify({
-                prompt: messageValue,
-                sql: sql,
-                dataset: databaseJsonResponse,
-              }),
-              parentDOM: chatBox,
-              formattingFunction: null,
-            }));
+          error = null;
+          ({ error, output: naturalLanguageAnswer } = await addMessageToChat({
+            title: null,
+            initialContent: null,
+            uiType: "assistantMessage",
+            api: "llm.php",
+            apiBody: JSON.stringify({
+              prompt: messageValue,
+              sql: sql,
+              dataset: databaseJsonResponse,
+            }),
+            parentDOM: chatBox,
+            formattingFunction: null,
+          }));
         }
       } catch (error) {
         console.error("Error:", error);
