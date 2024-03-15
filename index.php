@@ -223,6 +223,7 @@ const SUGGESTED_TEXTS = [
           parentDOM: chatBox,
           formattingFunction: null,
         }));
+        console.log("sql", sql)
 
         let databaseJsonResponse = null;
         if (!error && sql) {
