@@ -70,11 +70,14 @@ $link = "dummy";
 
 try {
     // Read the JSON payload from the request (the input from the user)
+    error_log("sql.php, Received payload: " . $payload);
     $payload = json_decode(file_get_contents('php://input'), true);
     $sql = $payload['sql'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
     $response = executeSQLAndGetJSON($link, $sql);
+    error_log("sql.php, response: " . $response);
     $responseJSON = json_encode(['error' => false, 'output' => $response]);
 } catch (Exception $e) {
+    error_log("sql.php, Exception caught: " . $e->getMessage());
     $responseJSON = json_encode(['error' => true, 'output' => $e->getMessage()]);
 }
 header('Content-Type: application/json');
