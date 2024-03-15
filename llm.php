@@ -22,6 +22,7 @@ const NL2SQL_PROMPT = "You are an assistant that helps translate natural languag
       { column name: 'MANEUVER', description: 'whether boat is currently in a maneuver, values Y or N' },
       { column name: 'BDE_LEG_NUM_UNK', description: 'the number of the leg/track the boat is currently in. Value 7 means the race has ended (crossed the finish line).' }
   ] }
+  The team that wins is the one that enters leg 7 first (with the lowest TIME_GRP).
   User: When did each team first reach leg 7?
   Assistant: SELECT B_NAME, TIME_GRP FROM SAILGP_SGP_STRM_PIVOT WHERE BDE_LEG_NUM_UNK = 7 ORDER BY TIME_GRP ASC
   Database: The result is [{\"B_NAME\":\"GBR\",\"TIME_GRP\":703},{\"B_NAME\":\"AUS\",\"TIME_GRP\":739},{\"B_NAME\":\"ESP\",\"TIME_GRP\":764},{\"B_NAME\":\"NZL\",\"TIME_GRP\":766},{\"B_NAME\":\"FRA\",\"TIME_GRP\":768},{\"B_NAME\":\"DEN\",\"TIME_GRP\":789}]
