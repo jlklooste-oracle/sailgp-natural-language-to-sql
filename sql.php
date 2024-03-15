@@ -72,6 +72,7 @@ try {
     // Read the JSON payload from the request (the input from the user)
     $payload = json_decode(file_get_contents('php://input'), true);
     error_log("sql.php, Received payload: " . $payload);
+    error_log("sql.php, Received payload sql: " . $payload['sql']);
     $sql = $payload['sql'] ?? ''; // Adjust this key based on the actual structure of your JSON payload
     $response = executeSQLAndGetJSON($link, $sql);
     error_log("sql.php, response: " . $response);
