@@ -149,7 +149,10 @@ const SUGGESTED_TEXTS = [
       }
 
       parentDOM.innerHTML += html;
-      parentDOM.scrollIntoView(false);
+      //scroll the last element into view
+      const lastElementAdded = parentDOM.lastElementChild;
+      lastElementAdded.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+
       await new Promise(resolve => setTimeout(resolve, 10));
       if (api !== null) {
         let iconReference = parentDOM
