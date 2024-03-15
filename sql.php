@@ -2,7 +2,6 @@
 include 'init.php'; // Include the constants file
 
 // Database credentials
-/*
 $link = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 if ($link === false) {
     die("ERROR: Could not connect. " . mysqli_connect_error());
@@ -52,8 +51,8 @@ function executeSQLAndGetJSON($link, $sqlStatement)
 
     return json_encode($data);
 }
-*/
 
+/*
 function executeSQLAndGetJSON($link, $sqlStatement)
 {
     $data = [
@@ -67,6 +66,7 @@ function executeSQLAndGetJSON($link, $sqlStatement)
     return json_encode($data);
 }
 $link = "dummy";
+*/
 
 try {
     // Read the JSON payload from the request (the input from the user)
