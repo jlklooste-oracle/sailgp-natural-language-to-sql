@@ -244,6 +244,19 @@ const SUGGESTED_TEXTS = [
         if (!error) {
           // Reset error to null before the call
           error = null;
+
+const debug = {
+            title: null,
+            initialContent: null,
+            uiType: "assistantMessage",
+            api: "llm.php",
+            apiBody: JSON.stringify({
+              prompt: messageValue,
+              sql: sql,
+              dataset: databaseJsonResponse,
+            }
+            console.log("debug", debug)
+
           ({ error, output: naturalLanguageAnswer } = await addMessageToChat({
             title: null,
             initialContent: null,
