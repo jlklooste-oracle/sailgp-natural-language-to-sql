@@ -234,7 +234,7 @@ const SUGGESTED_TEXTS = [
             initialContent: null,
             uiType: "systemMessage",
             api: "sql.php",
-            apiBody: JSON.stringify({ sql: sql.output }),
+            apiBody: JSON.stringify({ sql: sql }),
             parentDOM: chatBox,
             formattingFunction: formatJSONasHTML,
           }));
