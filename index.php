@@ -68,6 +68,22 @@ const SUGGESTED_TEXTS = [
         .replace(/'/g, "&#039;");
     }
 
+    function toggleContentVisibility(element) {
+      // Find the parent of the clicked toggleDiv
+      const parent = element.parentNode;
+
+      // Within this parent, find the .content div
+      const contentDiv = parent.querySelector(".content");
+
+      if (element.textContent === "Hide") {
+        contentDiv.classList.add("hidden");
+        element.textContent = "Show";
+      } else {
+        contentDiv.classList.remove("hidden");
+        element.textContent = "Hide";
+      }
+    }
+
     async function addMessageToChat({
       title,
       initialContent,
@@ -83,7 +99,7 @@ const SUGGESTED_TEXTS = [
       if (uiType === "userMessage") {
         html = `
             <div class="chatUser">
-              <img src="/images/user.png" style="width: 20px;" />${initialContent ? initialContent : ''}</div>
+              ${initialContent ? initialContent : ''}</div>
             </div>
             `;
       }
@@ -95,7 +111,7 @@ const SUGGESTED_TEXTS = [
           <div class="chatSystemIconHolder">
             <img
               src="/images/typingIcon.gif"
-              style="width: 24px; margin-top: 10px;"
+              style="width: 24px;"
               class="chatSystemIcon"
             />
           </div>` : ''}
@@ -111,20 +127,22 @@ const SUGGESTED_TEXTS = [
               <div class="chatSystemIconHolder">
                 <img
                   src="/images/typingIcon.gif"
-                  style="width: 24px; margin-top: 10px"
+                  style="width: 24px;"
                   class="chatSystemIcon"
                 />
-                <div class="chatSystemText">
+                </div>
+                 <div class="chatSystemText">
                   ${title}
                   <div class="content" style="font-weight: 300">${initialContent ? initialContent : ''}</div>
+                  <div class="toggleDiv" onclick="toggleContentVisibility(this)">Hide</div>
                 </div>
-              </div>
             </div>
             `;
       }
 
       parentDOM.innerHTML += html;
       parentDOM.scrollIntoView(false);
+      await new Promise(resolve => setTimeout(resolve, 10));
       console.log("a")
       if (api !== null) {
         console.log("b")
@@ -152,6 +170,7 @@ const SUGGESTED_TEXTS = [
         } else {
           contentReference.innerHTML = jsonResponse.output;
         }
+        await new Promise(resolve => setTimeout(resolve, 1000));
         result = jsonResponse.output;
       }
       console.log("returning")

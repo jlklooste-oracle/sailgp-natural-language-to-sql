@@ -370,14 +370,25 @@
 
 .chatSystemIconHolder {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  min-width: 60px;
+  min-width: 24px;
+  height: 24px;
   align-content: center;
+  /*border-style: solid;*/
 }
 
 .chatSystemText {
   margin-left: 10px;
   display: flex; 
   flex-direction: column
+}
+
+.hidden {
+  display: none;
+}
+
+.toggleDiv {
+  cursor: pointer;
+  text-decoration: underline;
 }
