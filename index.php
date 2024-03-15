@@ -133,8 +133,8 @@ const SUGGESTED_TEXTS = [
                 </div>
                  <div class="chatSystemText">
                   ${title}
-                  <div class="content" style="font-weight: 300">${initialContent ? initialContent : ''}</div>
-                  <div class="toggleDiv hidden" onclick="toggleContentVisibility(this)">Hide</div>
+                  <div class="content hidden" style="font-weight: 300">${initialContent ? initialContent : ''}</div>
+                  <div class="toggleDiv hidden" onclick="toggleContentVisibility(this)">Show</div>
                 </div>
             </div>
             `;
