@@ -2,7 +2,7 @@
 include 'init.php'; // Include the constants file
 
 // Constants
-const OPENAI_API_ENDPOINT = "xhttps://api.openai.com/v1/completions";
+const OPENAI_API_ENDPOINT = "https://api.openai.com/v1/completions";
 const NL2SQL_PROMPT = "You are an assistant that helps translate natural language queries from the user to SQL.
   You interact with a database that returns you the result of the SQL.
   Next, you interpret the result from the database and explain it in natural language to the end user.
@@ -78,7 +78,6 @@ function nl2sql($finalPrompt)
 }
 
 try {
-  // Main code logic here
   $payload = json_decode(file_get_contents('php://input'), true);
   $prompt = $payload['prompt'] ?? '';
   $sql = $payload['sql'] ?? '';
@@ -92,9 +91,8 @@ try {
     $response = nl2sql($finalPrompt);
   }
 
-  $responseJSON = json_encode(['output' => $response]);
+  $responseJSON = json_encode(['error' => false, 'output' => $response]);
 } catch (Exception $e) {
-  // Handle exception gracefully here
   $responseJSON = json_encode(['error' => true, 'output' => $e->getMessage()]);
 }
 

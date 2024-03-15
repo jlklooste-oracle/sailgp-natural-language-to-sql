@@ -165,7 +165,11 @@ const SUGGESTED_TEXTS = [
         console.log("c")
         let jsonResponse = await response.json();
         console.log("jsonResponse.output", jsonResponse.output);
-        iconReference.src = "/images/checkedGreenIcon.svg";
+        if (jsonResponse.error) {
+          iconReference.src = "/images/errorIcon.png";
+        } else {
+          iconReference.src = "/images/checkedGreenIcon.svg";
+        }
         console.log("jsonResponse.output", jsonResponse.output);
         if (formattingFunction !== null) {
           const formattedOutput = formattingFunction(jsonResponse.output);
@@ -175,7 +179,7 @@ const SUGGESTED_TEXTS = [
         }
         visibilityToggler.classList.remove("hidden"); //show the hide button
         await new Promise(resolve => setTimeout(resolve, 1000));
-        result = jsonResponse.output;
+        result = jsonResponse
       }
       console.log("returning")
       //data.responseMessage = data.output.replace("\n", "<br>");
@@ -200,7 +204,7 @@ const SUGGESTED_TEXTS = [
         });
 
         //Step 2. Translate the natural language question into a SQL statement
-        const sql = await addMessageToChat({
+        let { error, sql } = await addMessageToChat({
           title: "Translating question to SQL",
           initialContent: null,
           uiType: "systemMessage",
@@ -210,34 +214,47 @@ const SUGGESTED_TEXTS = [
           formattingFunction: null,
         });
 
+        console.log("before step 3, error", error)
+
         //Step 3: Run SQL on database, we get the results as JSON, then convert that to HTML table format
-        const databaseJsonResponse = await addMessageToChat({
-          title: "Running SQL",
-          initialContent: null,
-          uiType: "systemMessage",
-          api: "sql.php",
-          apiBody: JSON.stringify({ sql: sql.output }),
-          parentDOM: chatBox,
-          formattingFunction: formatJSONasHTML,
-        });
+        let databaseJsonResponse = null
+        if (!error) {
+          console.log("step 3, error", error)
+          error = null
+          { error, databaseJsonResponse } = await addMessageToChat({
+            title: "Running SQL",
+            initialContent: null,
+            uiType: "systemMessage",
+            api: "sql.php",
+            apiBody: JSON.stringify({ sql: sql.output }),
+            parentDOM: chatBox,
+            formattingFunction: formatJSONasHTML,
+          });
+        }
+
+        console.log("before step 4, error", error)
 
         //Step 4: Call LLM to translate results into natural language
         //Input is a) natural language question, b) the resulting SQL statement and c) the resulting dataset.
         //Output is the natural language answer to the question.
         console.log("databaseJsonResponse", databaseJsonResponse);
-        const naturalLanguageAnswer = await addMessageToChat({
-          title: null,
-          initialContent: null,
-          uiType: "assistantMessage",
-          api: "llm.php",
-          apiBody: JSON.stringify({
-            prompt: messageValue,
-            sql: sql,
-            dataset: databaseJsonResponse,
-          }),
-          parentDOM: chatBox,
-          formattingFunction: null,
-        });
+        let naturalLanguageAnswer = null
+        if (!error) {
+          error = null
+          { error, naturalLanguageAnswer } = await addMessageToChat({
+            title: null,
+            initialContent: null,
+            uiType: "assistantMessage",
+            api: "llm.php",
+            apiBody: JSON.stringify({
+              prompt: messageValue,
+              sql: sql,
+              dataset: databaseJsonResponse,
+            }),
+            parentDOM: chatBox,
+            formattingFunction: null,
+          });
+        }
       } catch (error) {
         console.error("Error:", error);
       } finally {
