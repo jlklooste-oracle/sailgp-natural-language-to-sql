@@ -1,16 +1,16 @@
 <?php
 const SUGGESTED_TEXTS = [
-  "How long did Denmark foil?",
-  "How many minutes did Denmark foil?",
+/*  "How long did Denmark foil?",*/
+/*  "What percentage of the race was Denmark foiling?",*/
+/*  "How many seconds after Britain did Denmark finish?",*/
+/*  "Which team won?",*/
+/*  "Which teams did not finish?",*/
+"How many minutes did Denmark foil?",
   "How much time did each team foil?",
   "Did Denmark foil less than Great Britain?",
-  "What percentage of the race was Denmark foiling?",
   "At what time did Great Britain finish?",
-  "How many seconds after Britain did Denmark finish?",
   "What was the average speed for each team?",
   "Which team had the highest average speed?",
-  "Which team won?",
-  "Which teams did not finish?",
   "What is the average speed during foiling versus not foiling?",
 ];
 ?>
