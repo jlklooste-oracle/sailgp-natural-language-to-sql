@@ -239,6 +239,7 @@ const SUGGESTED_TEXTS = [
             formattingFunction: formatJSONasHTML,
           }));
         }
+        console.log("databaseJsonResponse", databaseJsonResponse)
 
         let naturalLanguageAnswer = null;
         if (!error) {
