@@ -1,8 +1,17 @@
 <?php
 const SUGGESTED_TEXTS = [
+  "How long did Denmark foil?",
+  "How many minutes did Denmark foil?",
   "How much time did each team foil?",
-  "Which team achieved the highest speed?",
-  "When did each team first reach leg 7? Include the team names."
+  "Did Denmark foil less than Great Britain?",
+  "What percentage of the race was Denmark foiling?",
+  "At what time did Great Britain finish?",
+  "How many seconds after Britain did Denmark finish?",
+  "What was the average speed for each team?",
+  "Which team had the highest average speed?",
+  "Which team won?",
+  "Which teams did not finish?",
+  "What is the average speed during foiling versus not foiling?",
 ];
 ?>
 
@@ -191,7 +200,7 @@ const SUGGESTED_TEXTS = [
         let currHour = new Date();
         const messageValue = document.querySelector(".inputFieldChat").value;
 
-        //Step 1. Add user message
+        // Step 1. Add user message
         let chatBox = document.querySelector(".chatContainerFlexCol");
         await addMessageToChat({
           title: null,
@@ -203,8 +212,12 @@ const SUGGESTED_TEXTS = [
           formattingFunction: null,
         });
 
-        //Step 2. Translate the natural language question into a SQL statement
-        let { error, sql } = await addMessageToChat({
+        // Resetting error to null before each step ensures it doesn't carry over.
+        let error = null;
+        let sql;
+
+        // Step 2. Translate the natural language question into a SQL statement
+        ({ error, output: sql } = await addMessageToChat({
           title: "Translating question to SQL",
           initialContent: null,
           uiType: "systemMessage",
@@ -212,16 +225,16 @@ const SUGGESTED_TEXTS = [
           apiBody: JSON.stringify({ prompt: messageValue }),
           parentDOM: chatBox,
           formattingFunction: null,
-        });
+        }));
 
-        console.log("before step 3, error", error)
+        console.log("before step 3, error", error);
+        console.log("before step 3, sql", sql);
 
-        //Step 3: Run SQL on database, we get the results as JSON, then convert that to HTML table format
-        let databaseJsonResponse = null
-        if (!error) {
-          console.log("step 3, error", error)
-          error = null
-          { error, databaseJsonResponse } = await addMessageToChat({
+        let databaseJsonResponse = null;
+        if (!error && sql) {
+          // Reset error to null before the call
+          error = null;
+          ({ error, output: databaseJsonResponse } = await addMessageToChat({
             title: "Running SQL",
             initialContent: null,
             uiType: "systemMessage",
@@ -229,19 +242,18 @@ const SUGGESTED_TEXTS = [
             apiBody: JSON.stringify({ sql: sql.output }),
             parentDOM: chatBox,
             formattingFunction: formatJSONasHTML,
-          });
+          }));
         }
 
-        console.log("before step 4, error", error)
+        console.log("before step 4, error", error);
+        console.log("before step 4, databaseJsonResponse", databaseJsonResponse);
+        console.log("before step 4, sql", sql);
 
-        //Step 4: Call LLM to translate results into natural language
-        //Input is a) natural language question, b) the resulting SQL statement and c) the resulting dataset.
-        //Output is the natural language answer to the question.
-        console.log("databaseJsonResponse", databaseJsonResponse);
-        let naturalLanguageAnswer = null
+        let naturalLanguageAnswer = null;
         if (!error) {
-          error = null
-          { error, naturalLanguageAnswer } = await addMessageToChat({
+          // Reset error to null before the call
+          error = null;
+          ({ error, output: naturalLanguageAnswer } = await addMessageToChat({
             title: null,
             initialContent: null,
             uiType: "assistantMessage",
@@ -253,8 +265,10 @@ const SUGGESTED_TEXTS = [
             }),
             parentDOM: chatBox,
             formattingFunction: null,
-          });
+          }));
         }
+
+        console.log("databaseJsonResponse", databaseJsonResponse);
       } catch (error) {
         console.error("Error:", error);
       } finally {
