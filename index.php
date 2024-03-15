@@ -32,7 +32,6 @@ const SUGGESTED_TEXTS = [
     var WELCOME_MESSAGE = "Welcome to a demonstration of natural language to SQL on MySQL! I'm here to help you explore what happened during the SailGP race. You can ask about metrics such as the times teams reach specific legs of the race, boat speeds, angles relative to the wind, and much more. I will translate your question to SQL and handle the logic of querying the database and interpreting the results. What is your question?"
     function formatJSONasHTML(jsonData) {
       try {
-        console.log("parsing", jsonData);
         const data = JSON.parse(jsonData);
 
         if (!Array.isArray(data) || data.length === 0) {
@@ -152,9 +151,7 @@ const SUGGESTED_TEXTS = [
       parentDOM.innerHTML += html;
       parentDOM.scrollIntoView(false);
       await new Promise(resolve => setTimeout(resolve, 10));
-      console.log("a")
       if (api !== null) {
-        console.log("b")
         let iconReference = parentDOM
           .querySelectorAll(".chatSystemIcon")
           .item(parentDOM.querySelectorAll(".chatSystemIcon").length - 1);
@@ -171,7 +168,6 @@ const SUGGESTED_TEXTS = [
           },
           body: apiBody,
         });
-        console.log("c")
         let jsonResponse = await response.json();
         console.log("jsonResponse.output", jsonResponse.output);
         if (jsonResponse.error) {
@@ -179,7 +175,6 @@ const SUGGESTED_TEXTS = [
         } else {
           iconReference.src = "/images/checkedGreenIcon.svg";
         }
-        console.log("jsonResponse.output", jsonResponse.output);
         if (formattingFunction !== null) {
           const formattedOutput = formattingFunction(jsonResponse.output);
           contentReference.innerHTML = formattedOutput;
@@ -190,7 +185,6 @@ const SUGGESTED_TEXTS = [
         await new Promise(resolve => setTimeout(resolve, 1000));
         result = jsonResponse
       }
-      console.log("returning")
       //data.responseMessage = data.output.replace("\n", "<br>");
       return result
     }
@@ -227,9 +221,6 @@ const SUGGESTED_TEXTS = [
           formattingFunction: null,
         }));
 
-        console.log("before step 3, error", error);
-        console.log("before step 3, sql", sql);
-
         let databaseJsonResponse = null;
         if (!error && sql) {
           // Reset error to null before the call
@@ -244,10 +235,6 @@ const SUGGESTED_TEXTS = [
             formattingFunction: formatJSONasHTML,
           }));
         }
-
-        console.log("before step 4, error", error);
-        console.log("before step 4, databaseJsonResponse", databaseJsonResponse);
-        console.log("before step 4, sql", sql);
 
         let naturalLanguageAnswer = null;
         if (!error) {
@@ -267,8 +254,6 @@ const SUGGESTED_TEXTS = [
             formattingFunction: null,
           }));
         }
-
-        console.log("databaseJsonResponse", databaseJsonResponse);
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -278,8 +263,7 @@ const SUGGESTED_TEXTS = [
     }
 
     window.onload = function () {
-      //Add a welcome message onload
-      console.log("adding message")
+      //Add a welcome message right after loading the page
       let chatBox = document.querySelector(".chatContainerFlexCol");
       addMessageToChat({
         title: null,
@@ -329,7 +313,7 @@ const SUGGESTED_TEXTS = [
     <div class="suggestionContainer">
       <?php foreach (SUGGESTED_TEXTS as $text): ?>
         <div class="suggestion"
-          onclick="document.querySelector('.inputFieldChat').value = '<?php echo addslashes($text); ?>';">
+          onclick="document.querySelector('.inputFieldChat').value = '<?php echo addslashes($text); ?>'; document.querySelector('.inputFieldChat').focus();">
           <?php echo $text; ?>
         </div>
       <?php endforeach; ?>
